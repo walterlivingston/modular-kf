@@ -5,8 +5,8 @@
 #include "eigenhelpers.h"
 
 struct EstWithCov {
-    vecX estimate;
-    matX covariance;
+    vecX x;
+    matX P;
 };
 
 namespace mkf{
@@ -17,14 +17,14 @@ namespace mkf{
 
         virtual matX updateStateTransitionMatrix(vecX& x);
         virtual matX calcProcessCovarianceMatrix(double& dt);
-        virtual matX updateState(vecX& x, double& dt);
+        virtual vecX updateState(vecX& x, double& dt);
         virtual EstWithCov propagate(vecX& x, double& dt, bool relinearize = false);
 
-        inline double getNumStates() { return _num_states; };
+        inline double getNumStates() { return this->_num_states; };
         inline void setNumStates(double& num_states) { this->_num_states = num_states; };
-        inline vecX getStateSigmas() { return _state_sigmas; };
+        inline vecX getStateSigmas() { return this->_state_sigmas; };
         inline void setStateSigmas(vecX& state_sigmas) { this->_state_sigmas = state_sigmas; };
-        inline vecX getStateTransitionMatrix() { return _F; };
+        inline matX getStateTransitionMatrix() { return this->_F; };
 
     private:
         double _num_states;
