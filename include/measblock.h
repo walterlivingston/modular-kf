@@ -1,6 +1,7 @@
 #pragma once
 
 #include "eigenhelpers.h"
+#include "auxdata.h"
 
 struct EstWithObs{
     vecX y_hat;
@@ -25,5 +26,6 @@ namespace mkf{
     private:
         vecX _meas_sigmas;
         matX _H;
+        AuxData aux;
     };
 }

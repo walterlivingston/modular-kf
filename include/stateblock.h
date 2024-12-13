@@ -1,6 +1,7 @@
 #pragma once
 
 #include "eigenhelpers.h"
+#include "auxdata.h"
 
 struct EstWithCov {
     vecX x;
@@ -28,5 +29,6 @@ namespace mkf{
         double _num_states;
         vecX _state_sigmas;
         matX _F;
+        AuxData aux;
     };
 }
