@@ -4,7 +4,7 @@
 #include "auxdata.h"
 
 namespace mkf{
-    struct EstAndInnWithCov {
+    struct EstInnWithCov {
         vecX x;
         vecX z;
         matX P;
@@ -24,7 +24,7 @@ namespace mkf{
         virtual matX updateObservationMatrix(vecX& x, vecX& y);
         virtual matX calcMeasurementCovariance();
         virtual matX calcInnovationCovariance(vecX& x, matX& P);
-        virtual EstAndInnWithCov update(vecX& x, vecX& y, bool relinearize = false);
+        virtual EstInnWithCov update(vecX& x, vecX& y, bool relinearize = false);
 
         inline vecX getMeasurementSigmas() { return this->_meas_sigmas; };
         inline void setMeasurementSigmas(vecX& meas_sigmas) { this->_meas_sigmas = meas_sigmas; };

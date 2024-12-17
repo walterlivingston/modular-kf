@@ -62,7 +62,7 @@ void KalmanFilter::update(vecX& y, std::optional<MeasurementBlock&> meas_block){
         this->_meas_block = *meas_block;
     }
 
-    EstAndInnWithCov eiwc = this->_meas_block.update(this->_x, y, this->mode == (KF_EXTENDED || KF_ERROR));
+    EstInnWithCov eiwc = this->_meas_block.update(this->_x, y, this->mode == (KF_EXTENDED || KF_ERROR));
     this->_P = eiwc.P;
     this->_x = eiwc.x;
     this->_z = eiwc.z;
