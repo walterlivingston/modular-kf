@@ -1,14 +1,21 @@
 #pragma once
 
+#include <iostream>
+
 #include "eigenhelpers.h"
 #include "auxdata.h"
 
-struct EstWithCov {
-    vecX x;
-    matX P;
-};
-
 namespace mkf{
+    struct EstWithCov {
+        vecX x;
+        matX P;
+    };
+
+    struct EstWithNominal{
+        vecX x;
+        vecX X;
+    };
+
     class StateBlock{
     public:
         StateBlock(double& num_states, vecX& state_sigmas);
@@ -25,10 +32,17 @@ namespace mkf{
         inline void setStateSigmas(vecX& state_sigmas) { this->_state_sigmas = state_sigmas; };
         inline matX getStateTransitionMatrix() { return this->_F; };
 
+        inline EstWithNominal applyError(vecX& x, vecX& X, double& dt){
+            std::cerr << "Error: State block error handling has not been implemented!" << std::endl;
+        };
+        inline void processAuxData(AuxData& aux){
+            std::cerr << "Error: State block aux data handling has not been implemented!" << std::endl;
+        };
+
     private:
         double _num_states;
         vecX _state_sigmas;
         matX _F;
-        AuxData aux;
+        AuxData _aux;
     };
 }
