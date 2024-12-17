@@ -23,16 +23,16 @@ namespace mkf{
 
     class KalmanFilter{
     public:
-        KalmanFilter(mkf::StateBlock& state_block, mkf::MeasurementBlock& meas_block, std::optional<kfOptions&> opts);
+        KalmanFilter(mkf::StateBlockBase& state_block, mkf::MeasurementBlockBase& meas_block, std::optional<kfOptions&> opts);
         ~KalmanFilter();
 
-        void process(double& dt, std::optional<mkf::StateBlock&> state_block);
-        void update(vecX& y, std::optional<mkf::MeasurementBlock&> meas_block);
+        void process(double& dt, std::optional<mkf::StateBlockBase&> state_block);
+        void update(vecX& y, std::optional<mkf::MeasurementBlockBase&> meas_block);
 
-        inline mkf::StateBlock getStateBlock() { return this->_state_block; };
-        inline void setStateBlock(mkf::StateBlock& state_block){ this->_state_block = state_block; };
-        inline mkf::MeasurementBlock getMeasurementBlock() { return this->_meas_block; };
-        inline void setMeasurementBlock(mkf::MeasurementBlock& meas_block) { this->_meas_block = meas_block; };
+        inline mkf::StateBlockBase getStateBlock() { return this->_state_block; };
+        inline void setStateBlock(mkf::StateBlockBase& state_block){ this->_state_block = state_block; };
+        inline mkf::MeasurementBlockBase getMeasurementBlock() { return this->_meas_block; };
+        inline void setMeasurementBlock(mkf::MeasurementBlockBase& meas_block) { this->_meas_block = meas_block; };
         inline vecX getStates() { return this->_x; };
         inline vecX getNominalStates() { return this->_X; };
         inline vecX getInnovation() { return this->_z; };
@@ -40,8 +40,8 @@ namespace mkf{
         inline EstWithCov getStateWithCovariance() { return {this->_x, this->_P}; };
 
     private:
-        mkf::StateBlock _state_block;
-        mkf::MeasurementBlock _meas_block;
+        mkf::StateBlockBase _state_block;
+        mkf::MeasurementBlockBase _meas_block;
         vecX _x = vecX(0);
         vecX _X = vecX(0);
         matX _P;

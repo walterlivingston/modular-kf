@@ -16,15 +16,15 @@ namespace mkf{
         vecX X;
     };
 
-    class StateBlock{
+    class StateBlockBase{
     public:
-        StateBlock(double& num_states, vecX& state_sigmas);
-        ~StateBlock();
+        StateBlockBase(double& num_states, vecX& state_sigmas);
+        ~StateBlockBase();
 
         virtual matX updateStateTransitionMatrix(vecX& x);
         virtual matX calcProcessCovarianceMatrix(double& dt);
         virtual vecX updateState(vecX& x, double& dt);
-        virtual EstWithCov propagate(vecX& x, double& dt, bool relinearize = false);
+        virtual EstWithCov propagate(vecX& x, matX& P, double& dt, bool relinearize = false);
 
         inline double getNumStates() { return this->_num_states; };
         inline void setNumStates(double& num_states) { this->_num_states = num_states; };
@@ -39,7 +39,7 @@ namespace mkf{
             std::cerr << "Error: State block aux data handling has not been implemented!" << std::endl;
         };
 
-    private:
+    protected:
         double _num_states;
         vecX _state_sigmas;
         matX _F;

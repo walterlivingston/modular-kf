@@ -2,7 +2,7 @@
 
 using namespace mkf;
 
-KalmanFilter::KalmanFilter(StateBlock& state_block, MeasurementBlock& meas_block, std::optional<kfOptions&> opts)
+KalmanFilter::KalmanFilter(StateBlockBase& state_block, MeasurementBlockBase& meas_block, std::optional<kfOptions&> opts)
     : _state_block(state_block), _meas_block(meas_block){
         double dt;
         if(opts){
@@ -37,12 +37,12 @@ KalmanFilter::~KalmanFilter(){
 
 }
 
-void KalmanFilter::process(double& dt, std::optional<StateBlock&> state_block){
+void KalmanFilter::process(double& dt, std::optional<StateBlockBase&> state_block){
     if(state_block){
         this->_state_block = *state_block;
     }
 
-    EstWithCov ewc = this->_state_block.propagate(this->_x, dt, this->mode == (KF_EXTENDED || KF_ERROR));
+    EstWithCov ewc = this->_state_block.propagate(this->_x, this->_P, dt, this->mode == (KF_EXTENDED || KF_ERROR));
     this->_P = ewc.P;
     this->_x = ewc.x;
 
@@ -57,7 +57,7 @@ void KalmanFilter::process(double& dt, std::optional<StateBlock&> state_block){
     }
 }
 
-void KalmanFilter::update(vecX& y, std::optional<MeasurementBlock&> meas_block){
+void KalmanFilter::update(vecX& y, std::optional<MeasurementBlockBase&> meas_block){
     if(meas_block){
         this->_meas_block = *meas_block;
     }

@@ -16,10 +16,10 @@ namespace mkf{
         vecX X;
     };
 
-    class MeasurementBlock{
+    class MeasurementBlockBase{
     public:
-        MeasurementBlock(vecX& meas_sigmas);
-        ~MeasurementBlock();
+        MeasurementBlockBase(vecX& meas_sigmas);
+        ~MeasurementBlockBase();
 
         virtual matX updateObservationMatrix(vecX& x, vecX& y);
         virtual matX calcMeasurementCovariance();
