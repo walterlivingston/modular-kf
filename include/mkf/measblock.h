@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "eigenhelpers.h"
 #include "auxdata.h"
 
@@ -20,15 +22,15 @@ namespace mkf{
     public:
         MeasurementBlockBase(vecX& meas_sigmas);
         ~MeasurementBlockBase();
+        matX getObservationMatrix(vecX& x, vecX& y, bool relinearize = false);
 
         virtual matX updateObservationMatrix(vecX& x, vecX& y);
         virtual matX calcMeasurementCovariance();
         virtual matX calcInnovationCovariance(vecX& x, matX& P);
-        virtual EstInnWithCov update(vecX& x, vecX& y, bool relinearize = false);
+        virtual vecX calcMeasurementEstimate(vecX& x, vecX& y);
 
         inline vecX getMeasurementSigmas() { return this->_meas_sigmas; };
         inline void setMeasurementSigmas(vecX& meas_sigmas) { this->_meas_sigmas = meas_sigmas; };
-        inline matX getObservationMatrix() { return this->_H; };
 
         inline EstWithNominal applyError(vecX& x, vecX& X){
             std::cerr << "Error: Measurement block error handling has not been implemented!" << std::endl;
@@ -38,9 +40,9 @@ namespace mkf{
         };
 
 
-    private:
+    protected:
         vecX _meas_sigmas;
-        matX _H;
+        std::optional<matX> _H;
         AuxData _aux;
     };
 }

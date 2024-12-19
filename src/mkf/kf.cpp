@@ -42,9 +42,17 @@ void KalmanFilter::process(double& dt, std::optional<StateBlockBase&> state_bloc
         this->_state_block = *state_block;
     }
 
-    EstWithCov ewc = this->_state_block.propagate(this->_x, this->_P, dt, this->mode == (KF_EXTENDED || KF_ERROR));
-    this->_P = ewc.P;
-    this->_x = ewc.x;
+    matX I = Eigen::MatrixXd::Identity(this->_state_block.getNumStates(), this->_state_block.getNumStates());
+    matX F = this->_state_block.getStateTransitionMatrix(this->_x, this->mode == (KF_EXTENDED || KF_ERROR));
+    matX Phi = I + F*dt;
+    matX Qd = this->_state_block.calcProcessCovarianceMatrix(dt);
+
+    if (this->mode == (KF_EXTENDED || KF_ERROR)){
+        this->_x = this->_state_block.calcState(this->_x, dt);
+    }else{
+        this->_x = Phi*this->_x;
+    }
+    this->_P = Phi*(this->_P)*Phi.transpose();
 
     if(this->mode == KF_ERROR){
         EstWithNominal ewn = this->_state_block.applyError(this->_x, this->_X, dt);
@@ -62,10 +70,21 @@ void KalmanFilter::update(vecX& y, std::optional<MeasurementBlockBase&> meas_blo
         this->_meas_block = *meas_block;
     }
 
-    EstInnWithCov eiwc = this->_meas_block.update(this->_x, y, this->mode == (KF_EXTENDED || KF_ERROR));
-    this->_P = eiwc.P;
-    this->_x = eiwc.x;
-    this->_z = eiwc.z;
+    matX H = this->_meas_block.getObservationMatrix(this->_x, y, this->mode == (KF_EXTENDED || KF_ERROR));
+    matX R = this->_meas_block.calcMeasurementCovariance();
+    matX S = this->_meas_block.calcInnovationCovariance(this->_x, this->_P);
+    matX I = Eigen::MatrixXd::Identity(this->_state_block.getNumStates(), this->_state_block.getNumStates());
+
+    matX L = this->_P*H.transpose()*S.inverse();
+    vecX yhat;
+    if (this->mode == (KF_EXTENDED || KF_ERROR)){
+        yhat = this->_meas_block.calcMeasurementEstimate(this->_x, y);
+    }else{
+        yhat = H*this->_x;
+    }
+    this->_z = y - yhat;
+    this->_x = this->_x + L*this->_z;
+    this->_P = (I - L*H)*this->_P*(I - L*H).transpose() + L*R*L.transpose();
 
     if(this->mode == KF_ERROR){
         EstWithNominal ewn = this->_meas_block.applyError(this->_x, this->_X);

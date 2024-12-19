@@ -10,7 +10,6 @@ namespace mekf{
 
         matX updateStateTransitionMatrix(vecX& x) override;
         matX calcProcessCovarianceMatrix(double& dt) override;
-        vecX updateState(vecX& x, double& dt) override;
-        mkf::EstWithCov propagate(vecX& x, matX& P, double& dt, bool relinearize = false) override;
+        vecX calcState(vecX& x, double& dt) override;
     };
 }
