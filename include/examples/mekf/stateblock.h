@@ -11,5 +11,6 @@ namespace mekf{
         matX updateStateTransitionMatrix(vecX& x) override;
         matX calcProcessCovarianceMatrix(double& dt) override;
         vecX calcState(vecX& x, double& dt) override;
+        mkf::EstWithNominal applyError(vecX& x, vecX& X, double& dt);
     };
 }

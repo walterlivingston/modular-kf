@@ -49,3 +49,21 @@ vecX MagMeasurementBlock::calcMeasurementEstimate(vecX& x, vecX& y){
     vecX yhat = toBfromR*b;
     return yhat;
 }
+
+mkf::EstWithNominal MagMeasurementBlock::applyError(vecX& x, vecX& X){
+    mkf::EstWithNominal ewn;
+    ewn.X(X.size());
+    ewn.x = Eigen::VectorXd::Zero(x.size());
+
+    vec3 alpha = 0.5*x({3,4,5});
+    vecQ qa = {1,alpha};
+    qa = qNormalize(qa);
+    vecX X_ = X;
+    ewn.X({0,1,2,3}) = qMult(X_({0,1,2,3}), qa);
+    ewn.X({4,5,6}) = X_({4,5,6});
+
+    ewn.x({0,1,2}) = x({0,1,2});
+    ewn.x({6,7,8}) = x({6,7,8});
+
+    return ewn;
+}

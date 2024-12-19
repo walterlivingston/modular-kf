@@ -12,5 +12,6 @@ namespace mekf{
         matX calcMeasurementCovariance() override;
         matX calcInnovationCovariance(vecX& x, matX& P) override;
         vecX calcMeasurementEstimate(vecX& x, vecX& y) override;
+        mkf::EstWithNominal applyError(vecX& x, vecX& X);
     };
 }
