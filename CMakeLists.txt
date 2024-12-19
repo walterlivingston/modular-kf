@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(mkf)
-add_compile_options(-std=c++11) #optional to use c++11
+add_compile_options(-std=c++17) #optional to use c++11
 
 find_package(Eigen3 REQUIRED NO_MODULE)
 
