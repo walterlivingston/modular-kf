@@ -2,21 +2,11 @@
 
 #include <optional>
 
-#include "eigenhelpers.h"
-#include "auxdata.h"
+#include "mkf/eigenhelpers.h"
+#include "mkf/auxdata.h"
+#include "mkf/stateblock.h"
 
 namespace mkf{
-    struct EstInnWithCov {
-        vecX x;
-        vecX z;
-        matX P;
-        matX S;
-    };
-
-    struct EstWithNominal{
-        vecX x;
-        vecX X;
-    };
 
     class MeasurementBlockBase{
     public:
