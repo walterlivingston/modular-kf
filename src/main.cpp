@@ -4,6 +4,8 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <boost/algorithm/string.hpp>  // For boost::split
+#include <matplot/matplot.h>
 
 #include "mkf/mkf.h"
 #include "examples/mekf/stateblock.h"
@@ -37,57 +39,64 @@ int getColumnIdx(std::vector<std::string> vec, std::string col_name){
 }
 
 int main(int argc, char **argv){
-    std::vector<std::string> row;
     std::vector<std::string> col_titles;
-    std::vector<std::vector<double>> data;
-    std::vector<double> dataline;
-    std::string line, word, temp;
+    std::vector<double> truth_yaw, truth_pitch, truth_roll;
+    int raw_acc_idx, raw_gyr_idx, raw_mag_idx, truth_yaw_idx, truth_pitch_idx, truth_roll_idx;
+    
+    vecX state_sigmas;
+    state_sigmas << 1, 1, 1, 1, 1, 1;
+    vecX acc_sigmas;
+    acc_sigmas << 1, 1, 1;
+    vecX mag_sigmas;
+    mag_sigmas << 1, 1, 1;
+
+    mekf::StateBlock sBlock((int) 6, state_sigmas);
+    mekf::AccMeasurementBlock accMBlock(acc_sigmas);
+    mekf::MagMeasurementBlock magMBlock(mag_sigmas);
+
+    mkf::KalmanFilter(sBlock, accMBlock);
 
     std::fstream fin = openFile(filename);
+
     int idx = 0;
     while(!fin.eof()){
-        row.clear();
-
+        std::string line;
         getline(fin, line);
-        std::stringstream s(line);
-
-        while(getline(s, word, ',')){
-            // if(idx < 1){
-            //     col_titles.push_back(word);
-            // }else{
-            //     dataline.clear();
-            //     if(word.empty()){
-            //         dataline.push_back(0.0);
-            //     }else{
-            //         dataline.push_back(std::stod(word));
-            //     }
-            // }
+        if (!line.empty()){
+            if(idx < 1){
+                boost::split(col_titles, line, boost::is_any_of(","));
+    
+                raw_acc_idx = getColumnIdx(col_titles, "/vectornav/raw/imu/uncompaccel/x");
+                raw_gyr_idx = getColumnIdx(col_titles, "/vectornav/raw/imu/uncompgyro/x");
+                raw_mag_idx = getColumnIdx(col_titles, "/vectornav/raw/imu/uncompmag/x");
+    
+                truth_yaw_idx = getColumnIdx(col_titles, "/novatel_top/heading2/heading");
+                truth_pitch_idx = getColumnIdx(col_titles, "/novatel_bottom/heading2/pitch");
+                truth_roll_idx = getColumnIdx(col_titles, "/novatel_top/heading2/pitch");
+            }else{
+                std::vector<std::string> split_string;
+                boost::split(split_string, line, boost::is_any_of(","));
+                
+                if (!split_string.at(truth_pitch_idx).empty()){
+                    truth_pitch.push_back(std::stof(split_string.at(truth_pitch_idx)));
+                }
+                if (!split_string.at(truth_yaw_idx).empty()){
+                    truth_yaw.push_back(std::stof(split_string.at(truth_yaw_idx)));
+                    truth_roll.push_back(std::stof(split_string.at(truth_roll_idx)));
+                }
+                if (!split_string.at(raw_acc_idx).empty()){
+                    // Time Update & Accelerometer Measurement Update
+                }
+                if (!split_string.at(raw_mag_idx).empty()){
+                    // Magnetometer Measurement Update
+                }
+            }
         }
-        // data.push_back(dataline);
         idx += 1;
     }
     fin.close();
-
-    // auto acc_x_idx = getColumnIdx(col_titles, "/vectornav/raw/imu/uncompaccel/x");
-
-    // std::vector<double> raw_acc_x;
-    // std::vector<double> raw_acc_y;
-    // std::vector<double> raw_acc_z;
-    // std::vector<double> raw_gyr_x;
-    // std::vector<double> raw_gyr_y;
-    // std::vector<double> raw_gyr_z;
-    // std::vector<double> raw_mag_x;
-    // std::vector<double> raw_mag_y;
-    // std::vector<double> raw_mag_z;
-    // for(int i = 1; i < idx; i++){
-    //     raw_acc_x.push_back(data[i][acc_x_idx]);
-    //     raw_acc_y.push_back(data[i][acc_x_idx+1]);
-    //     raw_acc_z.push_back(data[i][acc_x_idx+2]);
-    //     raw_gyr_x.push_back(data[i][acc_x_idx+3]);
-    //     raw_gyr_y.push_back(data[i][acc_x_idx+4]);
-    //     raw_gyr_z.push_back(data[i][acc_x_idx+5]);
-    //     raw_mag_x.push_back(data[i][acc_x_idx+6]);
-    //     raw_mag_y.push_back(data[i][acc_x_idx+7]);
-    //     raw_mag_z.push_back(data[i][acc_x_idx+8]);
-    // }
+    std::cout << 1 << std::endl;
+    matplot::plot(truth_yaw);
+    matplot::show();
+    return 0;
 }

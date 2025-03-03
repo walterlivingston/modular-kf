@@ -3,7 +3,7 @@
 #include "mkf/measblock.h"
 
 namespace mekf{
-    class AccMeasurementBlock : mkf::MeasurementBlockBase{
+    class AccMeasurementBlock : public mkf::MeasurementBlockBase{
     public:
         AccMeasurementBlock(vecX& meas_sigmas);
         ~AccMeasurementBlock();

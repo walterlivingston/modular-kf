@@ -3,9 +3,9 @@
 #include "mkf/stateblock.h"
 
 namespace mekf{
-    class StateBlock : mkf::StateBlockBase{
+    class StateBlock : public mkf::StateBlockBase{
     public:
-        StateBlock(double& num_states, vecX& state_sigmas);
+        StateBlock(int num_states, vecX& state_sigmas);
         ~StateBlock();
 
         matX updateStateTransitionMatrix(vecX& x) override;

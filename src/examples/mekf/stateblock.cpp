@@ -3,7 +3,7 @@
 
 using namespace mekf;
 
-StateBlock::StateBlock(double& num_states, vecX& state_sigmas)
+StateBlock::StateBlock(int num_states, vecX& state_sigmas)
     : mkf::StateBlockBase(num_states, state_sigmas){
 
 }
@@ -51,13 +51,16 @@ mkf::EstWithNominal StateBlock::applyError(vecX& x, vecX& X, double& dt){
     ewn.X(X.size());
     ewn.x = x;
 
-    vecQ qw = {0, x({0,1,2})};
+    vecQ qw;
+    qw << 0, x({0,1,2});
     vecX X_ = X;
     if(qNorm(X_({0,1,2,3})) < 1e-10){
-        vecQ qI = {1, 0, 0, 0};
+        vecQ qI;
+        qI << 1, 0, 0, 0;
         X_({0,1,2,3}) = qI;
     }
 
     ewn.X({0,1,2,3}) = X_({0,1,2,3}) + 0.5*qMult(X_({0,1,2,3}), qw)*dt;
     ewn.X({4,5,6}) = X_({4,5,6});
+    return ewn;
 }

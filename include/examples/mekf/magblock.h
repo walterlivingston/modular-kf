@@ -3,7 +3,7 @@
 #include "mkf/measblock.h"
 
 namespace mekf{
-    class MagMeasurementBlock : mkf::MeasurementBlockBase{
+    class MagMeasurementBlock : public mkf::MeasurementBlockBase{
     public:
         MagMeasurementBlock(vecX& meas_sigmas);
         ~MagMeasurementBlock();

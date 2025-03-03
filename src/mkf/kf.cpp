@@ -44,7 +44,7 @@ KalmanFilter::~KalmanFilter(){
 
 }
 
-void KalmanFilter::process(double& dt, std::optional<StateBlockBase&> state_block){
+void KalmanFilter::process(double& dt, std::optional<StateBlockBase> state_block){
     if(state_block){
         this->_state_block = *state_block;
     }
@@ -72,7 +72,7 @@ void KalmanFilter::process(double& dt, std::optional<StateBlockBase&> state_bloc
     }
 }
 
-void KalmanFilter::update(vecX& y, std::optional<MeasurementBlockBase&> meas_block){
+void KalmanFilter::update(vecX& y, std::optional<MeasurementBlockBase> meas_block){
     if(meas_block){
         this->_meas_block = *meas_block;
     }

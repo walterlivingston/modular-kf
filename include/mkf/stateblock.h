@@ -18,14 +18,13 @@ namespace mkf{
 
     class StateBlockBase{
     public:
-        StateBlockBase(double& num_states, vecX& state_sigmas);
+        StateBlockBase(int num_states, vecX& state_sigmas);
         ~StateBlockBase();
         matX getStateTransitionMatrix(vecX& x, bool relinearize = false);
 
         virtual matX updateStateTransitionMatrix(vecX& x);
         virtual matX calcProcessCovarianceMatrix(double& dt);
         virtual vecX calcState(vecX& x, double& dt);
-        // virtual EstWithCov propagate(vecX& x, matX& P, double& dt, bool relinearize = false);
 
         inline double getNumStates() { return this->_num_states; };
         inline void setNumStates(double& num_states) { this->_num_states = num_states; };
@@ -41,7 +40,7 @@ namespace mkf{
         };
 
     protected:
-        double _num_states;
+        int _num_states;
         vecX _state_sigmas;
         std::optional<matX> _F;
         AuxData _aux;

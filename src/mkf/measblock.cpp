@@ -2,7 +2,7 @@
 
 using namespace mkf;
 
-matX MeasurementBlockBase::getObservationMatrix(const vecX& x, const vecX& y, bool relinearize = false){
+matX MeasurementBlockBase::getObservationMatrix(const vecX& x, const vecX& y, bool relinearize){
     if(relinearize){
         this->_H = this->updateObservationMatrix(x, y);
     }

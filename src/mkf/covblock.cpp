@@ -1,4 +1,5 @@
 #include "mkf/covblock.h"
+#include "mkf/kf.h"
 
 using namespace mkf;
 

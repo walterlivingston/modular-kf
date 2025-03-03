@@ -27,8 +27,8 @@ namespace mkf{
         KalmanFilter(mkf::StateBlockBase& state_block, mkf::MeasurementBlockBase& meas_block, std::optional<CovarianceBlockBase> cov_block = std::nullopt, std::optional<kfOptions> opts = std::nullopt);
         ~KalmanFilter();
 
-        void process(double& dt, std::optional<mkf::StateBlockBase&> state_block);
-        void update(vecX& y, std::optional<mkf::MeasurementBlockBase&> meas_block);
+        void process(double& dt, std::optional<mkf::StateBlockBase> state_block = std::nullopt);
+        void update(vecX& y, std::optional<mkf::MeasurementBlockBase> meas_block = std::nullopt);
 
         inline mkf::StateBlockBase getStateBlock() { return this->_state_block; };
         inline void setStateBlock(mkf::StateBlockBase& state_block){ this->_state_block = state_block; };
