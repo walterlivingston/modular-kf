@@ -3,9 +3,10 @@
 #include <string>
 #include <optional>
 
-#include "eigenhelpers.h"
-#include "stateblock.h"
-#include "measblock.h"
+#include "mkf/eigenhelpers.h"
+#include "mkf/stateblock.h"
+#include "mkf/measblock.h"
+#include "mkf/covblock.h"
 
 namespace mkf{
     enum KFTYPE{
@@ -23,7 +24,7 @@ namespace mkf{
 
     class KalmanFilter{
     public:
-        KalmanFilter(mkf::StateBlockBase& state_block, mkf::MeasurementBlockBase& meas_block, std::optional<kfOptions&> opts);
+        KalmanFilter(mkf::StateBlockBase& state_block, mkf::MeasurementBlockBase& meas_block, std::optional<CovarianceBlockBase> cov_block = std::nullopt, std::optional<kfOptions> opts = std::nullopt);
         ~KalmanFilter();
 
         void process(double& dt, std::optional<mkf::StateBlockBase&> state_block);
@@ -33,6 +34,8 @@ namespace mkf{
         inline void setStateBlock(mkf::StateBlockBase& state_block){ this->_state_block = state_block; };
         inline mkf::MeasurementBlockBase getMeasurementBlock() { return this->_meas_block; };
         inline void setMeasurementBlock(mkf::MeasurementBlockBase& meas_block) { this->_meas_block = meas_block; };
+        inline mkf::CovarianceBlockBase getCovarianceBlock() { return this->_cov_block; };
+        inline void setCovarianceBlock(mkf::CovarianceBlockBase& cov_block) { this->_cov_block = cov_block; };
         inline vecX getStates() { return this->_x; };
         inline vecX getNominalStates() { return this->_X; };
         inline vecX getInnovation() { return this->_z; };
@@ -42,6 +45,7 @@ namespace mkf{
     private:
         mkf::StateBlockBase _state_block;
         mkf::MeasurementBlockBase _meas_block;
+        mkf::CovarianceBlockBase _cov_block;
         vecX _x = vecX(0);
         vecX _X = vecX(0);
         matX _P;

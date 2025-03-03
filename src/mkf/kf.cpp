@@ -2,8 +2,15 @@
 
 using namespace mkf;
 
-KalmanFilter::KalmanFilter(StateBlockBase& state_block, MeasurementBlockBase& meas_block, std::optional<kfOptions&> opts)
+KalmanFilter::KalmanFilter(StateBlockBase& state_block, MeasurementBlockBase& meas_block, std::optional<CovarianceBlockBase> cov_block, std::optional<kfOptions> opts)
     : _state_block(state_block), _meas_block(meas_block){
+
+        if (cov_block){
+            this->_cov_block = *cov_block;
+        }else{
+            CovarianceBlockBase block;
+            this->_cov_block = block;
+        }
         double dt;
         if(opts){
             this->_x = opts->xi;
@@ -12,7 +19,7 @@ KalmanFilter::KalmanFilter(StateBlockBase& state_block, MeasurementBlockBase& me
             this->mode = opts->mode;
         }
 
-        this->_P = this->_state_block.calcProcessCovarianceMatrix(dt);
+        this->_P = this->_cov_block.calcProcessCovarianceMatrix(this, dt);
         
         switch(this->mode){
             case KF_LINEAR:
@@ -45,7 +52,7 @@ void KalmanFilter::process(double& dt, std::optional<StateBlockBase&> state_bloc
     matX I = Eigen::MatrixXd::Identity(this->_state_block.getNumStates(), this->_state_block.getNumStates());
     matX F = this->_state_block.getStateTransitionMatrix(this->_x, this->mode == (KF_EXTENDED || KF_ERROR));
     matX Phi = I + F*dt;
-    matX Qd = this->_state_block.calcProcessCovarianceMatrix(dt);
+    matX Qd = this->_cov_block.calcProcessCovarianceMatrix(this,dt);
 
     if (this->mode == (KF_EXTENDED || KF_ERROR)){
         this->_x = this->_state_block.calcState(this->_x, dt);
@@ -71,8 +78,8 @@ void KalmanFilter::update(vecX& y, std::optional<MeasurementBlockBase&> meas_blo
     }
 
     matX H = this->_meas_block.getObservationMatrix(this->_x, y, this->mode == (KF_EXTENDED || KF_ERROR));
-    matX R = this->_meas_block.calcMeasurementCovariance();
-    matX S = this->_meas_block.calcInnovationCovariance(this->_x, this->_P);
+    matX R = this->_cov_block.calcMeasurementCovarianceMatrix(this);
+    matX S = this->_cov_block.calcInnovationCovarianceMatrix(this);
     matX I = Eigen::MatrixXd::Identity(this->_state_block.getNumStates(), this->_state_block.getNumStates());
 
     matX L = this->_P*H.transpose()*S.inverse();

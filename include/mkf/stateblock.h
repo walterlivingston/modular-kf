@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "eigenhelpers.h"
-#include "auxdata.h"
+#include "mkf/eigenhelpers.h"
+#include "mkf/auxdata.h"
 
 namespace mkf{
     struct EstWithCov {
@@ -34,6 +34,7 @@ namespace mkf{
 
         inline EstWithNominal applyError(vecX& x, vecX& X, double& dt){
             std::cerr << "Error: State block error handling has not been implemented!" << std::endl;
+            return EstWithNominal();
         };
         inline void processAuxData(AuxData& aux){
             std::cerr << "Error: State block aux data handling has not been implemented!" << std::endl;

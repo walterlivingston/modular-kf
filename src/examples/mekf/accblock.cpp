@@ -12,7 +12,7 @@ AccMeasurementBlock::~AccMeasurementBlock(){
 
 }
 
-matX AccMeasurementBlock::updateObservationMatrix(vecX& x, vecX& y){
+matX AccMeasurementBlock::updateObservationMatrix(const vecX& x, const vecX& y){
     vecX X = this->_aux.getNominalState();
     matX toRfromB = q2DCM(X({0,1,2,3}));
     matX toBfromR = toRfromB.transpose();
@@ -32,13 +32,7 @@ matX AccMeasurementBlock::calcMeasurementCovariance(){
     return R;
 }
 
-matX AccMeasurementBlock::calcInnovationCovariance(vecX& x, matX& P){
-    matX R = this->calcMeasurementCovariance();
-    matX S = (*_H)*P*(*_H).transpose() + R;
-    return S;
-}
-
-vecX AccMeasurementBlock::calcMeasurementEstimate(vecX& x, vecX& y){
+vecX AccMeasurementBlock::calcMeasurementEstimate(const vecX& x, const vecX& y){
     vecX X = this->_aux.getNominalState();
     matX toRfromB = q2DCM(X({0,1,2,3}));
     matX toBfromR = toRfromB.transpose();

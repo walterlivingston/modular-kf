@@ -8,10 +8,9 @@ namespace mekf{
         MagMeasurementBlock(vecX& meas_sigmas);
         ~MagMeasurementBlock();
 
-        matX updateObservationMatrix(vecX& x, vecX& y) override;
+        matX updateObservationMatrix(const vecX& x, const vecX& y) override;
         matX calcMeasurementCovariance() override;
-        matX calcInnovationCovariance(vecX& x, matX& P) override;
-        vecX calcMeasurementEstimate(vecX& x, vecX& y) override;
+        vecX calcMeasurementEstimate(const vecX& x, const vecX& y) override;
         mkf::EstWithNominal applyError(vecX& x, vecX& X);
     };
 }
