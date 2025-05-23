@@ -7,6 +7,8 @@ StateBlockBase::StateBlockBase(int num_states, vecX& state_sigmas)
         
     }
 
+StateBlockBase::~StateBlockBase(){};
+
 matX StateBlockBase::getStateTransitionMatrix(vecX& x, bool relinearize){ 
     if(relinearize){
         this->_F = this->updateStateTransitionMatrix(x);

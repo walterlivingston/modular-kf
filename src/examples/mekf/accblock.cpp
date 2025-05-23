@@ -25,6 +25,7 @@ matX AccMeasurementBlock::updateObservationMatrix(const vecX& x, const vecX& y){
     H << I, O, I,
          O, skew(toBfromR*g), O;
     this->_H = H;
+    return H;
 }
 
 matX AccMeasurementBlock::calcMeasurementCovariance(){
