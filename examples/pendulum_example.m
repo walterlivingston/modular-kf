@@ -40,17 +40,21 @@ for i = 2:N
 end
 
 %% Kalman Filter
+% filter sigmas
 stateSigmas = sigmaF;
 measSigmas = sigmaE;
 
+% definition of filter blocks
 sBlock = pendulumStateBlock(2, stateSigmas, J, m, l, b);
 mBlock = pendulumMeasBlock(measSigmas);
 covBlock = basicCovBlock();
 
+% linear kalman filter
 KF = kf(sBlock, mBlock, covBlock, ...
                    x_i = [initialAngle 0]', ...
                    mode = 'linear');
 
+% extended kalman filter
 EKF = kf(sBlock, mBlock, covBlock, ...
          x_i = [initialAngle 0]', ...
          mode = 'extended');
@@ -58,12 +62,15 @@ EKF = kf(sBlock, mBlock, covBlock, ...
 [xKF, xEKF] = deal(zeros(2,N));
 [xKF(1,1), xEKF(1,1)] = deal(initialAngle);
 for k = 2:N
+    % time update
     KF.process(dt);
     EKF.process(dt);
 
+    % measurement update
     KF.update(y(:,k));
     EKF.update(y(:,k));
 
+    % save out current states
     xKF(:,k) = KF.x;
     xEKF(:,k) = EKF.x;
 end
@@ -72,7 +79,7 @@ end
 secs = seconds(time);
 
 figure();
-tiledlayout(2,1);
+t = tiledlayout(2,1);
 nexttile();
 hold('on');
 plot(secs, rad2deg(truth(1,:)));
@@ -81,7 +88,6 @@ plot(secs, rad2deg(xEKF(1,:)), '.-');
 xlabel('Time (s)');
 ylabel('Angle (deg)');
 title('Pendulum Angle');
-legend('Truth', 'KF', 'EKF');
 
 nexttile();
 hold('on');
@@ -91,6 +97,9 @@ plot(secs, rad2deg(xEKF(2,:)));
 xlabel('Time (s)');
 ylabel('Angular Rate (deg)');
 title('Pendulum Angular Rate');
-legend('Truth', 'KF', 'EKF');
+
+title(t, 'Pendulum States');
+lgd = legend('Truth', 'KF', 'EKF');
+lgd.Layout.Tile = 'north';
 
 
