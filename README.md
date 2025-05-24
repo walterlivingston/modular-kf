@@ -21,6 +21,5 @@
 ## Supported Languages <a name = "supported-languages"></a>
 
 <a href="https://github.com/walterlivingston/modular-kf/tree/matlab"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/matlab/matlab-original.svg?sanitize=true" title="MATLAB" alt="MATLAB" width="40" height="40"/></a>&nbsp;
-<a href="https://github.com/walterlivingston/modular-kf/tree/c++"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/cplusplus/cplusplus-original.svg?sanitize=true" title="C++" alt="CPlusPlus" width="40" height="40"/></a>&nbsp;
 
 >Click image for that language's library
