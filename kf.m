@@ -23,17 +23,17 @@ classdef kf < handle
                 state_block         (1,1) stateblock
                 measurement_block   (1,1) measurementblock
                 covariance_block    (1,1) covarianceblock
-                options.xi          (:,1) double = zeros(state_block.num_states,1);
+                options.x_i          (:,1) double = zeros(state_block.num_states,1);
                 options.X_i         (:,1) double = zeros(state_block.num_states,1);
                 options.dt          (1,1) double = 1
-                options.mode        (1,1) string = 'kf'
+                options.mode        (1,1) string = 'linear'
             end
 
             obj.state_block = state_block;
             obj.measurement_block = measurement_block;
             obj.covariance_block = covariance_block;
             obj.mode = options.mode;
-            obj.x = options.xi;
+            obj.x = options.x_i;
 
             if strcmp(obj.mode,"error")
                 obj.X = options.X_i;
@@ -54,10 +54,10 @@ classdef kf < handle
             obj.P = covariance_block.calcProcessCovarianceMatrix(obj, options.dt);
 
             switch obj.mode
-                case 'kf'
-                    obj.state_block.F = obj.state_block.updateStateTransitionMatrix(options.xi);
+                case 'linear'
+                    obj.state_block.F = obj.state_block.updateStateTransitionMatrix(options.x_i);
                     obj.measurement_block.H = ...
-                        obj.measurement_block.updateObservationMatrix(options.xi, ...
+                        obj.measurement_block.updateObservationMatrix(options.x_i, ...
                             0);
                 case 'extended'
 
