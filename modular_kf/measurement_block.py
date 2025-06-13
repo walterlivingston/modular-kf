@@ -18,9 +18,9 @@ class MeasurementBlock(ABC):
     def calcMeasurementCovarianceMatrix(self) -> mat:
         pass
 
-    @abstractmethod
-    def calcInnovationCovarianceMatrix(self) -> mat:
-        pass
+    # @abstractmethod
+    # def calcInnovationCovarianceMatrix(self) -> mat:
+    #     pass
 
     @abstractmethod
     def update(self, x_: vec, y_: vec, relinearize: bool = True) -> tuple[vec, mat]:
