@@ -3,6 +3,7 @@ from scipy.linalg import expm
 from modular_kf import StateBlock
 from modular_kf.helpers import *
 import quaternions as q
+
 class mekfStateBlock(StateBlock):
     
     def propagate(self, x_, dt, relinearize):
@@ -12,7 +13,7 @@ class mekfStateBlock(StateBlock):
             Phi = expm(self.F*dt)
         else:
             Phi = expm(self.F*dt)
-            x = Phi*x_
+            x = Phi@x_
 
         return (x, Phi)
     
@@ -30,7 +31,7 @@ class mekfStateBlock(StateBlock):
         if np.isnan(self.F).any:
             self.F = np.asmatrix(self.updateStateTransitionMatrix(np.zeros((self.num_states, 1))))
         Phi = expm(self.F*dt)
-        return Phi*Bw*Q*Bw.T*Phi.T*dt**2
+        return Phi@Bw@Q@Bw.T@Phi.T*dt**2
 
     def applyError(self, x_, X_, dt):
         X = np.zeros((len(X_), 1))
