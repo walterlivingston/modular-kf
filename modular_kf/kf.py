@@ -1,5 +1,11 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from modular_kf import CovarianceBlock
+
 import numpy as np
-from modular_kf import StateBlock, MeasurementBlock, CovarianceBlock
+from modular_kf import StateBlock, MeasurementBlock
 from modular_kf.helpers import *
 
 class KalmanFilter:
@@ -55,7 +61,8 @@ class KalmanFilter:
 
         [self.x, Phi] = self.state_block.propagate(self.x, dt, self.mode == 'extended' or self.mode == 'error')
         Qd = self.covariance_block.calcProcessCovariance(self, dt, self.state_block)
-        self.P = Phi*self.P*Phi.T + Qd
+        P = Phi*self.P*Phi.T + Qd
+        self.P = np.matrix(P)
 
         if self.mode == 'error':
             ewn = self.state_block.applyError(self.x, self.X, dt)
@@ -83,7 +90,8 @@ class KalmanFilter:
             L = self.P*H.T/S
 
             self.x = self.x + L*self.z
-            self.P = (np.eye(self.state_block.num_states) - L*H)*self.P*(np.eye(self.state_block.num_states) - L*H).T + L*R*L.T
+            P = (np.eye(self.state_block.num_states) - L*H)*self.P*(np.eye(self.state_block.num_states) - L@H).T + L*R*L.T
+            self.P = np.matrix(P)
 
             if self.mode == 'error':
                 [self.x, self.X] = self.measurement_block.applyError(self.x, self.X)
