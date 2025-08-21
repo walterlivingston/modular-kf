@@ -27,7 +27,7 @@ class KalmanFilter:
         self.dt = options.get('dt', 0)
         self.mode = options.get('mode', "linear")
 
-        self.P = self.covariance_block.calcProcessCovarianceMatrix(self.dt)
+        self.P = self.covariance_block.calcProcessCovariance(self, self.dt)
 
         match self.mode:
             case "linear":
@@ -44,8 +44,8 @@ class KalmanFilter:
                 mAux = self.measurement_block.aux
                 mAux.X = self.X
 
-                self.state_block = self.state_block.processAuxData(sAux)
-                self.measurement_block = self.measurement_block.processAuxData(mAux)
+                self.state_block.processAuxData(sAux)
+                self.measurement_block.processAuxData(mAux)
 
                 self.state_block.applyError(self.x, self.X, self.dt)
                 self.measurement_block.applyError(self.x, self.X)

@@ -29,9 +29,10 @@ class mekfAccMeasBlock(MeasurementBlock):
 
     def applyError(self, x_, X_):
         alpha = x_[:3]*0.5
-        qa = np.array([1, alpha.T])
+        alpha = alpha.reshape((3,1))
+        qa = np.vstack((1, alpha))
         X = np.zeros((len(X_),1))
-        X[:4] = q.qMult(X_[:4], qa)
+        X[:4] = q.qMult(X_[:4], qa).reshape((4,1))
         X[4:] = x_[3:6]
         x = np.concatenate([np.zeros((3, 1)), x_[3:6].reshape(-1, 1)])
 

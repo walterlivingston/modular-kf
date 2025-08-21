@@ -18,11 +18,11 @@ class mekfStateBlock(StateBlock):
         return (x, Phi)
     
     def updateStateTransitionMatrix(self, x_):
-        return np.block([[-skew(self.aux.y),      -np.eye(3)],
+        return np.block([[-skew(self.aux.y[0:3]),      -np.eye(3)],
                       [  np.zeros((3,3)), np.zeros((3,3))]])
     
     def updateState(self, x_, dt):
-        return np.concatenate([np.zeros(3), x_[3:6]])
+        return np.concatenate([np.zeros((3,1)), x_[3:6]])
     
     def calcProcessCovarianceMatrix(self, dt):
         Q = np.diag(self.state_sigmas**2)*np.sqrt(dt)
@@ -45,7 +45,10 @@ class mekfStateBlock(StateBlock):
         else:
             w_ = self.aux.y[:3]
 
-        X[:4] = X_[:4] + 0.5*q.qMult(X_[:4], np.concatenate(([0], w_)))*dt
+        q_dot = 0.5*q.qMult(X_[:4], np.vstack(([0], w_)))*dt
+        q_dot = q_dot.reshape((4,1))
+
+        X[:4] = X_[:4] + q_dot
         X[:4] = q.qNormalize(X[:4])
 
         X[4:] = X_[4:]

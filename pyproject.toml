@@ -11,7 +11,8 @@ requires-python = ">=3.10"
 dependencies = [
     "numpy (>=2.2.6,<3.0.0)",
     "quaternions @ git+https://github.com/walterlivingston/quaternions@python",
-    "scipy (>=1.15.3,<2.0.0)"
+    "scipy (>=1.15.3,<2.0.0)",
+    "matplotlib (>=3.10.5,<4.0.0)"
 ]
 
 
