@@ -23,4 +23,5 @@ int main() {
     mkf::KalmanFilter::Options opts;
     mkf::KalmanFilter kf(stateBlock, magMeasBlock, covBlock, opts);
 
+    std::cout << "Kalman filter has been initialized with " << kf.state_block->num_states() << " states." << std::endl;
 }

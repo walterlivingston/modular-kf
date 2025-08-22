@@ -9,7 +9,7 @@ find_package(Boost 1.89 REQUIRED COMPONENTS filesystem)
 include_directories(include dependencies/quaternions/include)
 
 file(GLOB PROJECT_HEADERS include/*.hpp)
-file(GLOB PROJECT_SOURCES src/*.cpp mkf/*.cpp)
+file(GLOB PROJECT_SOURCES src/*.cpp src/mkf/*.cpp)
 # file(GLOB VENDORS_SOURCES )
 file(GLOB PROJECT_CONFIGS CMakeLists.txt)
 
