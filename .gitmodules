@@ -1,0 +1,3 @@
+[submodule "dependencies/quaternions"]
+	path = dependencies/quaternions
+	url = git@github.com:walterlivingston/quaternions.git

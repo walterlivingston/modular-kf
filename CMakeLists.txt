@@ -1,33 +1,25 @@
-cmake_minimum_required(VERSION 3.28)
-cmake_policy(SET CMP0167 NEW)  # Enable modern Boost behavior
-
+cmake_minimum_required(VERSION 3.30)
 project(mkf)
-add_compile_options(-std=c++17) #optional to use c++11
 
-find_package(Eigen3 REQUIRED NO_MODULE)
-find_package(Boost REQUIRED COMPONENTS filesystem system)
-find_package(Matplot++ REQUIRED)
+set(CMAKE_CXX_STANDARD 17)
 
-include_directories(include
-                    ${Boost_INCLUDE_DIRS})
-link_directories(${Eigen_INCLUDE_DIRS})
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Boost 1.89 REQUIRED COMPONENTS filesystem)
 
-# file(GLOB VENDORS_SOURCES dependencies/glad/src/glad.c
-#                           dependencies/stb/stb.cpp)
-file(GLOB PROJECT_HEADERS include/*.h include/mkf/*.h include/examples/mekf/*.h)
-file(GLOB PROJECT_SOURCES src/*.cpp src/mkf/*.cpp src/examples/mekf/*.cpp)
+include_directories(include dependencies/quaternions/include)
+
+file(GLOB PROJECT_HEADERS include/*.hpp)
+file(GLOB PROJECT_SOURCES src/*.cpp mkf/*.cpp)
+# file(GLOB VENDORS_SOURCES )
 file(GLOB PROJECT_CONFIGS CMakeLists.txt)
 
 source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
-# source_group("Vendors" FILES ${VENDORS_SOURCES})
+source_group("Vendors" FILES ${VENDORS_SOURCES})
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
-                               ${PROJECT_CONFIGS} ${PROJECT_SHADERS}
-                               ${VENDORS_SOURCES})
+                               ${PROJECT_CONFIGS} )
 
-target_link_libraries(${PROJECT_NAME}
-                      Eigen3::Eigen 
-                      Boost::filesystem
-                      Boost::system
-                      Matplot++::matplot)
+target_link_libraries(${PROJECT_NAME} 
+  PRIVATE Eigen3::Eigen
+  Boost::filesystem)
