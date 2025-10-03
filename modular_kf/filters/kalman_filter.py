@@ -3,7 +3,7 @@ from typing import Optional
 from scipy.linalg import expm
 
 from .base_filter import BaseFilter
-from ..base import (
+from ..models.base import (
     BaseSystemModel,
     BaseMeasurementModel,
     BaseCovarianceManager,
@@ -12,7 +12,7 @@ from ..base import (
 from ..core import AuxData, WithCovariance
 
 
-class KalmanFilter:
+class KalmanFilter(BaseFilter):
     sys_model: BaseSystemModel
     meas_model: BaseMeasurementModel
     cov_manager: BaseCovarianceManager

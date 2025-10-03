@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 import numpy as np
 
-from .core import AuxData
+from ..core import AuxData
 
 
 class BaseSystemModel(ABC):
