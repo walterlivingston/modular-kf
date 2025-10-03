@@ -1,25 +1,10 @@
 [project]
 name = "modular-kf"
 version = "0.1.0"
-description = "A modular framework for quickly creating kalman filters"
-authors = [
-    {name = "Walter Livingston",email = "wblivingston18@gmail.com"}
-]
-license = {text = "MIT"}
+description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "numpy (>=2.2.6,<3.0.0)",
-    "quaternions @ git+https://github.com/walterlivingston/quaternions@python",
-    "scipy (>=1.15.3,<2.0.0)",
-    "matplotlib (>=3.10.5,<4.0.0)"
+    "numpy>=2.3.3",
+    "scipy>=1.16.2",
 ]
-
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.group.dev.dependencies]
-pandas = "^2.3.0"
-
