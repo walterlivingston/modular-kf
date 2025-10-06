@@ -2,7 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from ..models.base import (
+from ..core.base import (
     BaseSystemModel,
     BaseMeasurementModel,
     BaseCovarianceManager,

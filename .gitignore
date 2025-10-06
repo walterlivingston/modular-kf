@@ -3,3 +3,4 @@ build/
 data/
 .DS_STORE
 *.asv
+__pycache__/

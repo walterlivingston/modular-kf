@@ -1,9 +1,9 @@
 import numpy as np
 from typing import Optional
 
-from ..base import BaseSystemModel
+from ...core.base import BaseSystemModel
 from ...core import AuxData
-from ...utils import skew
+from ...core.utils import skew
 
 
 class MEKF6StateSystemModel(BaseSystemModel):

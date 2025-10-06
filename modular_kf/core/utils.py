@@ -17,3 +17,8 @@ class AuxData:
         if self.data is None:
             return default
         return self.data.get(key, default)
+
+
+def skew(v):
+    v = v.flatten()
+    return np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])

@@ -2,16 +2,18 @@ from abc import ABC, abstractmethod
 from typing import Optional
 import numpy as np
 
-from ..core import AuxData
+from .utils import AuxData
 
 
 class BaseSystemModel(ABC):
     F: np.ndarray
     Bw: np.ndarray
+    sigmas: np.ndarray
 
-    def __init__(self, x_i: np.ndarray) -> None:
+    def __init__(self, x_i: np.ndarray, sigmas: np.ndarray) -> None:
         self.F = self.update_state_transition_matrix(x_i, 0)
         self.Bw = self.update_noise_input_matrix(x_i)
+        self.sigmas = sigmas
 
     @abstractmethod
     def update_state_transition_matrix(
@@ -31,9 +33,8 @@ class BaseSystemModel(ABC):
     ) -> np.ndarray:
         pass
 
-    @abstractmethod
     def covariance(self) -> np.ndarray:
-        pass
+        return np.diag(self.sigmas)
 
 
 class BaseMeasurementModel(ABC):

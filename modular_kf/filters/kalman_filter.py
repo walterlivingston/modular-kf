@@ -3,7 +3,7 @@ from typing import Optional
 from scipy.linalg import expm
 
 from .base_filter import BaseFilter
-from ..models.base import (
+from ..core.base import (
     BaseSystemModel,
     BaseMeasurementModel,
     BaseCovarianceManager,
