@@ -31,6 +31,10 @@ class KalmanFilter(BaseFilter):
         self.sys_model = sys_model
         self.meas_model = meas_model
         self.cov_manager = cov_manager or DefaultCovarianceManager()
+        self.state = WithCovariance(
+            self.sys_model.xi,
+            self.cov_manager.process_covariance(self.sys_model, self.sys_model.xi),
+        )
 
     def predict(
         self, dt: float, custom_model: Optional[BaseSystemModel] = None
@@ -38,16 +42,21 @@ class KalmanFilter(BaseFilter):
         if custom_model:
             self.sys_model = custom_model
 
+        x = self.state.value
+        P = self.state.covariance
+
         F_ = self.sys_model.F
         Phi_ = expm(F_ * dt)
-        self.x = Phi_ * self.x
+        x = Phi_ * x
 
         Bw = self.sys_model.Bw
-        Q = self.cov_manager.process_covariance(self.sys_model, self.x, self.aux)
+        Q = self.cov_manager.process_covariance(self.sys_model, x, self.aux)
 
-        self.P = Phi_ @ self.P @ Phi_.T + Bw @ Q @ Bw.T * dt
+        P = Phi_ @ P @ Phi_.T + Bw @ Q @ Bw.T * dt
 
-        return WithCovariance(self.x, self.P)
+        self.state = WithCovariance(x, P)
+
+        return self.state
 
     def update(
         self, y: np.ndarray, custom_model: Optional[BaseMeasurementModel] = None

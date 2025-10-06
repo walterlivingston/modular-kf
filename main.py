@@ -1,5 +1,6 @@
 from modular_kf.filters import KalmanFilter
 from modular_kf.models.system import PendulumSystemModel
+from modular_kf.models.measurement import *
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -37,6 +38,14 @@ def pendulum_ode(t, x):
 sol = solve_ivp(pendulum_ode, t_span, x0, t_eval=t_eval)
 
 sys_model = PendulumSystemModel(np.array(x0), np.array([1, 1]), m, l, b)
+
+theta_meas_model = PendulumThetaMeasModel(np.array(x0), np.array([1, 1]))
+dtheta_meas_model = PendulumThetaDotMeasModel(np.array(x0), np.array([1, 1]))
+full_meas_model = PendulumFullMeasModel(np.array(x0), np.array([1, 1]))
+
+filter = KalmanFilter(sys_model, full_meas_model)
+
+filter.predict(0.1)
 
 # Plot results
 # plt.figure(figsize=(10,5))

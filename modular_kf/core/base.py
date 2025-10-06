@@ -6,13 +6,15 @@ from .utils import AuxData
 
 
 class BaseSystemModel(ABC):
+    xi: np.ndarray
     F: np.ndarray
     Bw: np.ndarray
     sigmas: np.ndarray
 
-    def __init__(self, x_i: np.ndarray, sigmas: np.ndarray) -> None:
-        self.F = self.update_state_transition_matrix(x_i, 0)
-        self.Bw = self.update_noise_input_matrix(x_i)
+    def __init__(self, xi: np.ndarray, sigmas: np.ndarray) -> None:
+        self.xi = xi
+        self.F = self.update_state_transition_matrix(xi, 0)
+        self.Bw = self.update_noise_input_matrix(xi)
         self.sigmas = sigmas
 
     @abstractmethod
@@ -39,9 +41,11 @@ class BaseSystemModel(ABC):
 
 class BaseMeasurementModel(ABC):
     H: np.ndarray
+    sigmas: np.ndarray
 
-    def __init__(self, x_i: np.ndarray) -> None:
+    def __init__(self, x_i: np.ndarray, sigmas: np.ndarray) -> None:
         self.H = self.update_observation_matrix(x_i)
+        self.sigmas = sigmas
 
     @abstractmethod
     def update_observation_matrix(
@@ -53,9 +57,8 @@ class BaseMeasurementModel(ABC):
     def meas_estimate(self, x: np.ndarray, aux: Optional[AuxData] = None) -> np.ndarray:
         pass
 
-    @abstractmethod
     def covariance(self) -> np.ndarray:
-        pass
+        return np.diag(self.sigmas)
 
 
 class BaseCovarianceManager(ABC):
