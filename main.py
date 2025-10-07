@@ -1,6 +1,7 @@
 from modular_kf.filters import KalmanFilter
 from modular_kf.models.system import PendulumSystemModel
 from modular_kf.models.measurement import *
+from modular_kf.core.utils import WithCovariance
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -37,23 +38,29 @@ def pendulum_ode(t, x):
 # Solve the ODE
 sol = solve_ivp(pendulum_ode, t_span, x0, t_eval=t_eval)
 
+meas_sigma = np.deg2rad(np.array([1, 0.1]))
+
 sys_model = PendulumSystemModel(np.array(x0), np.array([1, 1]), m, l, b)
-
-theta_meas_model = PendulumThetaMeasModel(np.array(x0), np.array([1, 1]))
-dtheta_meas_model = PendulumThetaDotMeasModel(np.array(x0), np.array([1, 1]))
-full_meas_model = PendulumFullMeasModel(np.array(x0), np.array([1, 1]))
-
+full_meas_model = PendulumFullMeasModel(np.array(x0), meas_sigma)
 filter = KalmanFilter(sys_model, full_meas_model)
 
-filter.predict(0.1)
+state_list: list[WithCovariance] = []
+for k in range(0, len(t_eval)):
+    filter.predict(10 / 1000)
+    print(k)
+    filter.update(sol.y[:, k] + np.random.normal(0, meas_sigma, size=sol.y[:, k].shape))
+
+    state_list.append(filter.state)
+
+estimates = np.array([state.value[0] for state in state_list])
 
 # Plot results
-# plt.figure(figsize=(10,5))
-# plt.plot(sol.t, sol.y[0], label='theta (rad)')
-# plt.plot(sol.t, sol.y[1], label='theta_dot (rad/s)')
-# plt.xlabel('Time (s)')
-# plt.ylabel('States')
-# plt.title('Linearized Pendulum Simulation (State-Space)')
-# plt.legend()
-# plt.grid(True)
-# plt.show()
+plt.figure(figsize=(10, 5))
+plt.plot(sol.t, sol.y[0], label="theta (rad)")
+plt.plot(sol.t, estimates[:, 0], label="theta estimate (rad)")
+plt.xlabel("Time (s)")
+plt.ylabel("States")
+plt.title("Linearized Pendulum Simulation (State-Space)")
+plt.legend()
+plt.grid(True)
+plt.show()

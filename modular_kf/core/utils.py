@@ -1,6 +1,6 @@
 import numpy as np
-from dataclasses import dataclass
-from typing import Any
+from dataclasses import dataclass, field
+from typing import Any, Dict
 
 
 @dataclass
@@ -11,7 +11,7 @@ class WithCovariance:
 
 @dataclass
 class AuxData:
-    data: dict[Any, Any]
+    data: Dict[Any, Any] = field(default_factory=dict)
 
     def get(self, key, default=None):
         if self.data is None:

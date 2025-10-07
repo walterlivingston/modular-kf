@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Optional
-from scipy.linalg import expm
+from scipy.linalg import expm, inv
 
 from .base_filter import BaseFilter
 from ..core.base import (
@@ -35,6 +35,7 @@ class KalmanFilter(BaseFilter):
             self.sys_model.xi,
             self.cov_manager.process_covariance(self.sys_model, self.sys_model.xi),
         )
+        self.aux = AuxData()
 
     def predict(
         self, dt: float, custom_model: Optional[BaseSystemModel] = None
@@ -64,20 +65,21 @@ class KalmanFilter(BaseFilter):
         if custom_model:
             self.meas_model = custom_model
 
+        x = self.state.value
+        P = self.state.covariance
+
         H_ = self.meas_model.H
-        yhat_ = H_ * self.x
+        yhat_ = H_ * x
 
-        R = self.cov_manager.measurement_covariance(self.meas_model, self.x, self.aux)
-        S = self.cov_manager.innovation_covariance(
-            self.meas_model, self.x, self.P, self.aux
-        )
+        R = self.cov_manager.measurement_covariance(self.meas_model, x, self.aux)
+        S = self.cov_manager.innovation_covariance(self.meas_model, x, P, self.aux)
 
-        L = self.P @ H_.T / S
+        L = P @ H_.T @ inv(S)
 
         self.z = y - yhat_
-        self.x = self.x + L * self.z
-        self.P = (np.eye(len(self.x)) - L @ H_) @ self.P @ (
-            np.eye(len(self.x)) - L @ H_
-        ).T + L @ R @ L.T
+        x = x + L * self.z
+        P = (np.eye(len(x)) - L @ H_) @ P @ (np.eye(len(x)) - L @ H_).T + L @ R @ L.T
 
-        return WithCovariance(self.x, self.P)
+        self.state = WithCovariance(x, P)
+
+        return self.state
