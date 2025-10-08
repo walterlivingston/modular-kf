@@ -41,14 +41,15 @@ sol = solve_ivp(pendulum_ode, t_span, x0, t_eval=t_eval)
 meas_sigma = np.deg2rad(np.array([1, 0.1]))
 
 sys_model = PendulumSystemModel(np.array(x0), np.array([1, 1]), m, l, b)
-full_meas_model = PendulumFullMeasModel(np.array(x0), meas_sigma)
-filter = KalmanFilter(sys_model, full_meas_model)
+# full_meas_model = PendulumFullMeasModel(np.array(x0), meas_sigma)
+dtheta_meas_model = PendulumThetaDotMeasModel(np.array(x0), meas_sigma[1])
+filter = KalmanFilter(sys_model, dtheta_meas_model)
 
 state_list: list[WithCovariance] = []
 for k in range(0, len(t_eval)):
     filter.predict(10 / 1000)
     print(k)
-    filter.update(sol.y[:, k] + np.random.normal(0, meas_sigma, size=sol.y[:, k].shape))
+    filter.update(sol.y[1, k] + np.random.normal(0, meas_sigma[1], size=sol.y[1, k].shape))
 
     state_list.append(filter.state)
 

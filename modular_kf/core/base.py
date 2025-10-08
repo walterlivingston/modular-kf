@@ -36,7 +36,10 @@ class BaseSystemModel(ABC):
         pass
 
     def covariance(self) -> np.ndarray:
-        return np.diag(self.sigmas)
+        if len(np.atleast_1d(self.sigmas)) > 1:
+            return np.diag(self.sigmas**2)
+        else:
+            return self.sigmas**2
 
 
 class BaseMeasurementModel(ABC):
@@ -58,7 +61,10 @@ class BaseMeasurementModel(ABC):
         pass
 
     def covariance(self) -> np.ndarray:
-        return np.diag(self.sigmas)
+        if len(np.atleast_1d(self.sigmas)) > 1:
+            return np.diag(self.sigmas**2)
+        else:
+            return self.sigmas**2
 
 
 class BaseCovarianceManager(ABC):
