@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Optional
-from scipy.linalg import expm, inv
+from scipy.linalg import expm
 
 from .base_filter import BaseFilter
 from ..core.base import (
@@ -10,6 +10,7 @@ from ..core.base import (
     DefaultCovarianceManager,
 )
 from ..core import AuxData, WithCovariance
+from ..core.utils import inv
 
 
 class KalmanFilter(BaseFilter):
@@ -48,7 +49,7 @@ class KalmanFilter(BaseFilter):
 
         F_ = self.sys_model.F
         Phi_ = expm(F_ * dt)
-        x = Phi_ * x
+        x = Phi_ @ x
 
         Bw = self.sys_model.Bw
         Q = self.cov_manager.process_covariance(self.sys_model, x, self.aux)
@@ -69,16 +70,17 @@ class KalmanFilter(BaseFilter):
         P = self.state.covariance
 
         H_ = self.meas_model.H
-        yhat_ = H_ * x
+        yhat_ = H_ @ x
 
         R = self.cov_manager.measurement_covariance(self.meas_model, x, self.aux)
         S = self.cov_manager.innovation_covariance(self.meas_model, x, P, self.aux)
 
-        L = P @ H_.T @ inv(S)
+        S_inv = inv(S)
+        L = P @ H_.T * S_inv if np.isscalar(S_inv) else P @ H_.T @ S_inv
 
         self.z = y - yhat_
-        x = x + L * self.z
-        P = (np.eye(len(x)) - L @ H_) @ P @ (np.eye(len(x)) - L @ H_).T + L @ R @ L.T
+        x = x + L.T @ self.z
+        P = (np.eye(len(x)) - L * H_) @ P @ (np.eye(len(x)) - L @ H_).T + L @ R @ L.T
 
         self.state = WithCovariance(x, P)
 

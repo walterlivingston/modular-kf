@@ -6,6 +6,7 @@ from modular_kf.core.utils import WithCovariance
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
+from scipy.linalg import expm
 
 # Pendulum parameters
 g = 9.81  # gravity (m/s^2)
@@ -21,47 +22,65 @@ C = np.eye(2)  # we want to observe both theta and theta_dot
 D = np.array([[0], [0]])
 
 # Simulation time
-t_span = (0, 10)  # 10 seconds
-t_eval = np.linspace(t_span[0], t_span[1], 1000)
+tf = 10
+num_steps = 1000
+dt = 10 / 1000
+t_span = (0, tf)  # 10 seconds
+t_eval = np.linspace(t_span[0], t_span[1], num_steps)
+N = len(t_eval)
 
 # Initial condition: small angle (radians) and zero velocity
-x0 = [0.1, 0.0]
-
+x0 = np.array([0.1, 0.0])
+Phi = expm(A * dt)
 
 # Define the state-space ODE
-def pendulum_ode(t, x):
-    u = 0  # no control input
-    dxdt = A @ x + B.flatten() * u
-    return dxdt
+y = np.zeros((2, N))
+y[:, 0] = x0.T
+for k in range(1, N):
+    y[:, k] = Phi @ y[:, k - 1]
 
 
 # Solve the ODE
-sol = solve_ivp(pendulum_ode, t_span, x0, t_eval=t_eval)
+# sol = solve_ivp(pendulum_ode, t_span, x0, t_eval=t_eval)
 
-meas_sigma = np.deg2rad(np.array([1, 0.1]))
+meas_sigma = np.deg2rad(np.array([1, 1]))
 
-sys_model = PendulumSystemModel(np.array(x0), np.array([1, 1]), m, l, b)
-# full_meas_model = PendulumFullMeasModel(np.array(x0), meas_sigma)
-dtheta_meas_model = PendulumThetaDotMeasModel(np.array(x0), meas_sigma[1])
+sys_model = PendulumSystemModel(x0, np.array([1, 1]), m, l, b)
+full_meas_model = PendulumFullMeasModel(x0, meas_sigma)
+dtheta_meas_model = PendulumThetaDotMeasModel(x0, meas_sigma[1])
 filter = KalmanFilter(sys_model, dtheta_meas_model)
 
 state_list: list[WithCovariance] = []
-for k in range(0, len(t_eval)):
+y_ = np.zeros((2, N))
+for k in range(0, N):
     filter.predict(10 / 1000)
-    print(k)
-    filter.update(sol.y[1, k] + np.random.normal(0, meas_sigma[1], size=sol.y[1, k].shape))
+    y_[:, k] = y[:, k] + np.random.normal(0, meas_sigma, size=y[:, k].shape)
+    # filter.update(y_[:, k])
+    filter.update(y_[1, k])
 
     state_list.append(filter.state)
 
-estimates = np.array([state.value[0] for state in state_list])
+estimates = np.zeros((2, N))
+for k in range(0, N):
+    estimates[:, k] = state_list[k].value
 
 # Plot results
 plt.figure(figsize=(10, 5))
-plt.plot(sol.t, sol.y[0], label="theta (rad)")
-plt.plot(sol.t, estimates[:, 0], label="theta estimate (rad)")
+plt.plot(t_eval, y[0], label="theta (rad)")
+plt.plot(t_eval, y_[0, :], label="theta_meas (rad)")
+plt.plot(t_eval, estimates[0, :], label="theta estimate (rad)")
 plt.xlabel("Time (s)")
 plt.ylabel("States")
-plt.title("Linearized Pendulum Simulation (State-Space)")
+# plt.title("Linearized Pendulum Simulation (State-Space)")
 plt.legend()
 plt.grid(True)
+
+plt.figure(figsize=(10, 5))
+plt.plot(t_eval, y[1], label="dtheta (rad/s)")
+plt.plot(t_eval, y_[1, :], label="dtheta_meas (rad/s)")
+plt.plot(t_eval, estimates[1, :], label="dtheta (rad/s)")
+plt.xlabel("Time (s)")
+plt.ylabel("States")
+# plt.title("Linearized Pendulum Simulation (State-Space)")
+plt.legend()
 plt.show()

@@ -28,7 +28,7 @@ class PendulumSystemModel(BaseSystemModel):
         self, x: np.ndarray, dt: float, aux: Optional[AuxData] = None
     ) -> np.ndarray:
 
-        return np.array([[0, 1], [-self.g / self.l, -self.b]])
+        return np.array([[0, 1], [(-self.g / self.l) * x[0], -self.b * x[1]]])
 
     def update_noise_input_matrix(
         self, x: np.ndarray, aux: Optional[AuxData] = None
