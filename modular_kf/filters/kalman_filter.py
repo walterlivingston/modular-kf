@@ -3,13 +3,8 @@ from typing import Optional
 from scipy.linalg import expm
 
 from .base_filter import BaseFilter
-from ..core.base import (
-    BaseSystemModel,
-    BaseMeasurementModel,
-    BaseCovarianceManager,
-    DefaultCovarianceManager,
-)
-from ..core import AuxData, WithCovariance
+from ..core.base import BaseSystemModel, BaseMeasurementModel
+from ..core import WithCovariance
 from ..core.utils import inv
 
 
