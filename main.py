@@ -2,8 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from modular_kf.filters import KalmanFilter
-from modular_kf.models.system import PendulumSystemModel
-from modular_kf.models.measurement import *
+from modular_kf.models import PendulumSystemModel, PendulumFullMeasModel
 from modular_kf.core.utils import WithCovariance
 
 # pendulum parameters
