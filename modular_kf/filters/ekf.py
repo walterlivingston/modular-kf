@@ -8,7 +8,7 @@ from ..core import WithCovariance
 from ..core.utils import inv
 
 
-class EKF(BaseFilter):
+class ExtendedKalmanFilter(BaseFilter):
     def predict(
         self, dt: float, custom_model: Optional[BaseSystemModel] = None
     ) -> WithCovariance:

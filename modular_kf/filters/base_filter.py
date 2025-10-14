@@ -23,13 +23,13 @@ class BaseFilter(ABC):
 
     def __init__(
         self,
-        system_model: BaseSystemModel,
-        measurement_model: BaseMeasurementModel,
-        covariance_manager: Optional[BaseCovarianceManager] = None,
+        sys_model: BaseSystemModel,
+        meas_model: BaseMeasurementModel,
+        cov_manager: Optional[BaseCovarianceManager] = None,
     ) -> None:
-        self.sys_model = system_model
-        self.meas_model = measurement_model
-        self.cov_manager = covariance_manager or DefaultCovarianceManager()
+        self.sys_model = sys_model
+        self.meas_model = meas_model
+        self.cov_manager = cov_manager or DefaultCovarianceManager()
         self.state = WithCovariance(
             self.sys_model.xi,
             self.cov_manager.process_covariance(self.sys_model, self.sys_model.xi),
