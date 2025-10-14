@@ -6,7 +6,7 @@ from ..core import AuxData
 
 
 class PendulumSystemModel(BaseSystemModel):
-    g: float = 9.81
+    g: float = -9.81
     m: float
     l: float
     b: float
@@ -28,7 +28,7 @@ class PendulumSystemModel(BaseSystemModel):
         self, x: np.ndarray, dt: float, aux: Optional[AuxData] = None
     ) -> np.ndarray:
 
-        return np.array([[0, 1], [(-self.g / self.l) * x[0], -self.b * x[1]]])
+        return np.array([[0, 1], [(self.m * self.g * self.l * x[0]), -self.b * x[1]]])
 
     def update_noise_input_matrix(
         self, x: np.ndarray, aux: Optional[AuxData] = None
@@ -44,9 +44,6 @@ class PendulumSystemModel(BaseSystemModel):
                 x[1] + ((self.m * self.g * self.l * np.sin(x[0])) - self.b * x[1]) * dt,
             ]
         )
-        # theta_dot = x[1]
-        # theta_ddot = (-self.b * x[1] - self.m * self.g * self.l * np.sin(x[0]))
-        # return np.array([[theta_dot], [theta_ddot]])
 
 
 class PendulumThetaMeasModel(BaseMeasurementModel):
