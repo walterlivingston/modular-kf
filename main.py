@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from modular_kf.filters import KalmanFilter
+from modular_kf.filters import KalmanFilter, EKF
 from modular_kf.models import PendulumSystemModel, PendulumFullMeasModel
 from modular_kf.core.utils import WithCovariance
 
@@ -37,7 +37,10 @@ meas_sigma = np.deg2rad(np.array([1, 1]))
 
 sys_model = PendulumSystemModel(x0, state_sigmas, m, l, b)
 full_meas_model = PendulumFullMeasModel(x0, meas_sigma)
-filter = KalmanFilter(sys_model, full_meas_model)
+linear_filter = KalmanFilter(sys_model, full_meas_model)
+extended_filter = EKF(sys_model, full_meas_model)
+
+filter = linear_filter
 
 # run filter
 state_list: list[WithCovariance] = []
@@ -51,6 +54,8 @@ for k in range(0, N):
 estimates = np.array([s.value for s in state_list]).T
 
 error = truth - estimates
+avg_error = np.mean(error, axis=1)
+print(avg_error)
 
 # results
 fig, axd = plt.subplot_mosaic([["A"], ["B"], ["C"]], figsize=(10, 6))

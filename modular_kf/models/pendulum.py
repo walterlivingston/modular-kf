@@ -38,11 +38,15 @@ class PendulumSystemModel(BaseSystemModel):
     def propogate_state(
         self, x: np.ndarray, dt: float, aux: Optional[AuxData] = None
     ) -> np.ndarray:
-        theta_dot = x[1]
-        theta_ddot = (-self.b * x[1] - self.m * self.g * self.l * np.sin(x[0])) / (
-            self.m * self.l**2
+        return np.array(
+            [
+                x[0] + x[1] * dt,
+                x[1] + ((self.m * self.g * self.l * np.sin(x[0])) - self.b * x[1]) * dt,
+            ]
         )
-        return np.array([[theta_dot], [theta_ddot]])
+        # theta_dot = x[1]
+        # theta_ddot = (-self.b * x[1] - self.m * self.g * self.l * np.sin(x[0]))
+        # return np.array([[theta_dot], [theta_ddot]])
 
 
 class PendulumThetaMeasModel(BaseMeasurementModel):
