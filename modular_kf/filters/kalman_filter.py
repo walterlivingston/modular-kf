@@ -14,30 +14,6 @@ from ..core.utils import inv
 
 
 class KalmanFilter(BaseFilter):
-    sys_model: BaseSystemModel
-    meas_model: BaseMeasurementModel
-    cov_manager: BaseCovarianceManager
-
-    state: WithCovariance
-    innovation: WithCovariance
-
-    aux: AuxData
-
-    def __init__(
-        self,
-        sys_model: BaseSystemModel,
-        meas_model: BaseMeasurementModel,
-        cov_manager: Optional[BaseCovarianceManager] = None,
-    ) -> None:
-        self.sys_model = sys_model
-        self.meas_model = meas_model
-        self.cov_manager = cov_manager or DefaultCovarianceManager()
-        self.state = WithCovariance(
-            self.sys_model.xi,
-            self.cov_manager.process_covariance(self.sys_model, self.sys_model.xi),
-        )
-        self.aux = AuxData()
-
     def predict(
         self, dt: float, custom_model: Optional[BaseSystemModel] = None
     ) -> WithCovariance:
@@ -79,8 +55,16 @@ class KalmanFilter(BaseFilter):
         L = P @ H_.T * S_inv if np.isscalar(S_inv) else P @ H_.T @ S_inv
 
         self.z = y - yhat_
-        x = x + L.T @ self.z
-        P = (np.eye(len(x)) - L * H_) @ P @ (np.eye(len(x)) - L @ H_).T + L @ R @ L.T
+        if self.z.size == 1:
+            x = x + L * self.z
+            P = (np.eye(len(x)) - L * H_) @ P @ (
+                np.eye(len(x)) - L @ H_
+            ).T + L * R * L.T
+        else:
+            x = x + L @ self.z
+            P = (np.eye(len(x)) - L * H_) @ P @ (
+                np.eye(len(x)) - L @ H_
+            ).T + L @ R @ L.T
 
         self.state = WithCovariance(x, P)
 

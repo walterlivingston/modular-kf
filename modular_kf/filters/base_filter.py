@@ -27,9 +27,14 @@ class BaseFilter(ABC):
         measurement_model: BaseMeasurementModel,
         covariance_manager: Optional[BaseCovarianceManager] = None,
     ) -> None:
-        self.system_model = system_model
-        self.measurement_model = measurement_model
-        self.covariance_manager = covariance_manager or DefaultCovarianceManager()
+        self.sys_model = system_model
+        self.meas_model = measurement_model
+        self.cov_manager = covariance_manager or DefaultCovarianceManager()
+        self.state = WithCovariance(
+            self.sys_model.xi,
+            self.cov_manager.process_covariance(self.sys_model, self.sys_model.xi),
+        )
+        self.aux = AuxData()
 
     @abstractmethod
     def predict(
