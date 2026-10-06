@@ -24,8 +24,8 @@ classdef (Abstract) stateblock < handle
     methods (Abstract)
         [F]         = updateStateTransitionMatrix(obj, x_);
         [x]         = updateState(obj, x_, dt);
-        [Qd]        = calcProcessCovarianceMatrix(obj, dt);
-        [x, Phi]    = propagate(obj, x_, dt, relinearize);
+        [Qc, Bw]    = calcProcessCovarianceMatrix(obj, dt);
+        [x, F]      = propagate(obj, x_, dt, relinearize);
     end
 
     methods

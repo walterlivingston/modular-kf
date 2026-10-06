@@ -20,26 +20,26 @@ classdef pendulumStateBlock < stateblock
         end
 
         function [F] = updateStateTransitionMatrix(obj, x_)
-            F = [                0             1;
-                 ((obj.m*obj.g*obj.l)/obj.J)*x_(1)  -(obj.b/obj.J)*x_(2)];
+            F = [                0                          1;
+                 ((obj.m*obj.g*obj.l)/obj.J)*cos(x_(1))  -(obj.b/obj.J)];
         end
         function [x] = updateState(obj, x_, dt)
             x = [x_(1) + x_(2)*dt;
                  x_(2) + ((obj.m*obj.g*obj.l)*sin(x_(1))/obj.J - obj.b*x_(2)/obj.J)*dt];
         end
-        function [Qd] = calcProcessCovarianceMatrix(obj, dt)
-            Q = diag(obj.state_sigmas.^2);
+        function [Qc, Bw] = calcProcessCovarianceMatrix(obj, dt)
+            Qc = diag(obj.state_sigmas.^2);
             Bw = [0 1]';
-            Qd = Bw*Q*Bw'.*dt;
         end
-        function [x, Phi] = propagate(obj, x_, dt, relinearize)
+        function [x, F] = propagate(obj, x_, dt, relinearize)
             if ~exist('relinearize', 'var'); relinearize = false; end
             if relinearize || any(isnan(obj.F),'all')
                 obj.F = obj.updateStateTransitionMatrix(x_);
+                F = obj.F;
                 x = obj.updateState(x_, dt);
-                Phi = expm(obj.F*dt);
             else
-                Phi = expm(obj.F*dt);
+                F = obj.F;
+                Phi = expm(F*dt);
                 x = Phi*x_;
             end
         end

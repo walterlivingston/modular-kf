@@ -23,8 +23,9 @@ classdef kf < handle
                 state_block         (1,1) stateblock
                 measurement_block   (1,1) measurementblock
                 covariance_block    (1,1) covarianceblock
-                options.x_i          (:,1) double = zeros(state_block.num_states,1);
+                options.x_i         (:,1) double = zeros(state_block.num_states,1);
                 options.X_i         (:,1) double = zeros(state_block.num_states,1);
+                options.P_i         (:,:) double = NaN
                 options.dt          (1,1) double = 1
                 options.mode        (1,1) string = 'linear'
             end
@@ -51,7 +52,15 @@ classdef kf < handle
                 obj.measurement_block = obj.measurement_block.processAuxData(mAux);
             end
             
-            obj.P = covariance_block.calcProcessCovarianceMatrix(obj, options.dt);
+            if all(isnan(options.P_i))
+                F = obj.state_block.updateStateTransitionMatrix(obj.x);
+                [Qc, Bw] = obj.covariance_block.calcProcessCovarianceMatrix(obj, options.dt, obj.state_block);
+                [~, Qd] = vl_discretize(F, Qc, Bw, options.dt);
+    
+                obj.P = Qd;
+            else
+                obj.P = options.P_i;
+            end
 
             switch obj.mode
                 case 'linear'
@@ -83,9 +92,10 @@ classdef kf < handle
                 cBlock = obj.covariance_block;
             end
 
-            [obj.x, Phi] = sBlock.propagate(obj.x, dt, ...
+            [obj.x, F] = sBlock.propagate(obj.x, dt, ...
                 (strcmp(obj.mode, 'extended')) || (strcmp(obj.mode, 'error')));
-            Qd = cBlock.calcProcessCovarianceMatrix(obj, dt, sBlock);
+            [Qc, Bw] = cBlock.calcProcessCovarianceMatrix(obj, dt, sBlock);
+            [Phi, Qd] = vl_discretize(F, Qc, Bw, dt);
             obj.P = Phi*obj.P*Phi' + Qd;
             
             if strcmp(obj.mode,'error')
@@ -115,7 +125,10 @@ classdef kf < handle
 
             [yhat, H] = mBlock.update(obj.x, y, ...
                 (strcmp(obj.mode, 'extended')) || (strcmp(obj.mode, 'error')));
-            if any(isnan(obj.P)); error(''); end
+            if any(isnan(obj.P), 'all')
+                error('kf:nanCovariance', ...
+                    'State covariance matrix P contains NaN values.');
+            end
             R = cBlock.calcMeasurementCovarianceMatrix(obj, mBlock);
             oldz = obj.z;
             obj.z = (y - yhat);

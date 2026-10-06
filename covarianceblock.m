@@ -13,20 +13,20 @@ classdef (Abstract) covarianceblock < handle
     end
     
     methods
-        function [Q] = calcProcessCovarianceMatrix(obj, filter, dt, customStateBlock)
+        function [Qc, Bw] = calcProcessCovarianceMatrix(obj, filter, dt, customStateBlock)
             if exist('customStateBlock', 'var')
                 sBlock = customStateBlock;
             else
                 sBlock = filter.state_block;
             end
 
-            Q = sBlock.calcProcessCovarianceMatrix(dt);
+            [Qc, Bw] = sBlock.calcProcessCovarianceMatrix(dt);
         end
         function [R] = calcMeasurementCovarianceMatrix(obj, filter, customMeasBlock)
             if exist('customMeasBlock', 'var')
                 mBlock = customMeasBlock;
             else
-                mBlock = filter.state_block;
+                mBlock = filter.measurement_block;
             end
             
             R = mBlock.calcMeasurementCovarianceMatrix();
