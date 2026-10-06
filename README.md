@@ -65,3 +65,5 @@ From the repository root:
 ```matlab
 runtests("tests")
 ```
+
+The tests also run on every push and pull request via GitHub Actions (`.github/workflows/tests.yml`).
