@@ -12,6 +12,8 @@ jobs:
 
       - uses: matlab-actions/setup-matlab@v3
 
-      - uses: matlab-actions/run-tests@v3
+      # Put the library on the path before discovery, and only scan tests/,
+      # so the block subclasses aren't reported as broken test files.
+      - uses: matlab-actions/run-command@v3
         with:
-          select-by-folder: tests
+          command: addpath(genpath(pwd)); results = runtests("tests"); disp(results); assertSuccess(results);
