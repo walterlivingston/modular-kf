@@ -1,6 +1,6 @@
 clear; close all; clc;
 
-addpath(genpath('../'));
+addpath(genpath(fileparts(fileparts(mfilename('fullpath')))));
 
 %% Variables
 % Constants
@@ -24,9 +24,9 @@ Fs = 20;            % Sampling Frequency [Hz]
 
 %% Simulation
 initialAngle = deg2rad(30);
-y = zeros(2,N);     % Measurement Vector [deg : deg/s]
-truth = zeros(2,N); % Truth Vector [deg]
-[y(1,1), truth(1,1)] = deal(initialAngle);   % Initial Angle [deg]
+y = zeros(2,N);     % Measurement Vector [rad : rad/s]
+truth = zeros(2,N); % Truth Vector [rad : rad/s]
+[y(1,1), truth(1,1)] = deal(initialAngle);   % Initial Angle [rad]
 [y(1,1), y(2,1), truth(1,1), truth(2,1)] = ...
     simPendulum(0, y(1,1), ...
         PendulumType    = "normal", ...
@@ -48,17 +48,18 @@ measSigmas = [sigmaE sigmaT];
 % (blocks are handle objects, so each filter needs its own instances)
 KF = kf(pendulumStateBlock(2, stateSigmas, J, m, l, b), ...
         pendulumMeasBlock(measSigmas), basicCovBlock(), ...
-        x_i = [initialAngle 0]', ...
+        x_i = y(:,1), ...
         mode = 'linear');
 
 % extended kalman filter
 EKF = kf(pendulumStateBlock(2, stateSigmas, J, m, l, b), ...
          pendulumMeasBlock(measSigmas), basicCovBlock(), ...
-         x_i = [initialAngle 0]', ...
+         x_i = y(:,1), ...
          mode = 'extended');
 
+% both filters start from the first measurement
 [xKF, xEKF] = deal(zeros(2,N));
-[xKF(1,1), xEKF(1,1)] = deal(initialAngle);
+[xKF(:,1), xEKF(:,1)] = deal(y(:,1));
 for k = 2:N
     % time update
     KF.process(dt);
@@ -93,7 +94,7 @@ plot(secs, rad2deg(truth(2,:)));
 plot(secs, rad2deg(xKF(2,:)));
 plot(secs, rad2deg(xEKF(2,:)));
 xlabel('Time (s)');
-ylabel('Angular Rate (deg)');
+ylabel('Angular Rate (deg/s)');
 title('Pendulum Angular Rate');
 
 title(t, 'Pendulum States');

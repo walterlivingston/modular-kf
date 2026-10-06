@@ -15,5 +15,6 @@ function [Phi, Qd] = vl_discretize(F,Qc,Bw,Ts)
     VLd = expm(VLc*Ts);
     Phi = VLd((1+n):(2*n),(1+n):(2*n))';
     Qd = Phi * VLd(1:n,(1+n):(2*n));
+    Qd = (Qd + Qd')/2;  % remove round-off asymmetry
 end
 

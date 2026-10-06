@@ -43,6 +43,62 @@ classdef kfTest < matlab.unittest.TestCase
             testCase.verifyEqual(f.P, Phi*P0*Phi' + Qd, 'AbsTol', 1e-12);
         end
 
+        function controlInputMatchesClosedForm(testCase)
+            f = testCase.makeFilter('linear');
+            x0 = f.x;
+            T = testCase.dt;
+            a = 2;
+
+            f.process(T, u = a);
+
+            testCase.verifyEqual(f.x, [x0(1) + x0(2)*T + a*T^2/2; x0(2) + a*T], ...
+                'AbsTol', 1e-12);
+        end
+
+        function controlInputWithCustomBlock(testCase)
+            % u must still be recognized after optional positional blocks
+            f = testCase.makeFilter('linear');
+            x0 = f.x;
+            T = testCase.dt;
+
+            f.process(T, cvStateBlock(testCase.accel_sigma), [], u = 1);
+
+            testCase.verifyEqual(f.x(2), x0(2) + T, 'AbsTol', 1e-12);
+        end
+
+        function blocksWithoutInputStillWork(testCase)
+            f = kf(noInputStateBlock(testCase.accel_sigma), ...
+                posMeasBlock(testCase.meas_sigma), basicCovBlock(), ...
+                x_i = [1; 0.5], P_i = diag([4 1]));
+
+            f.process(testCase.dt);
+
+            testCase.verifyEqual(f.x, [1 + 0.5*testCase.dt; 0.5], 'AbsTol', 1e-12);
+        end
+
+        function timeUpdateKeepsCovarianceSymmetric(testCase)
+            % without symmetrizing, this drifts by ~1e-17 within 200 steps
+            f = kf(coupledStateBlock(), posMeasBlock(1), basicCovBlock(), ...
+                P_i = diag([4 1 0.5]) + 0.1);
+
+            for k = 1:200
+                f.process(0.05);
+            end
+
+            testCase.verifyTrue(issymmetric(f.P));
+        end
+
+        function measurementUpdateKeepsCovarianceSymmetric(testCase)
+            f = kf(coupledStateBlock(), posMeasBlock(0.1), basicCovBlock(), ...
+                x_i = [1; 0; 0], P_i = diag([4 1 0.5]) + 0.1);
+
+            for k = 1:50
+                f.process(0.05);
+                f.update(cos(0.05*k));
+                testCase.assertTrue(issymmetric(f.P), sprintf('asymmetric at step %d', k));
+            end
+        end
+
         function josephUpdateMatchesStandardForm(testCase)
             for mode = ["linear", "extended"]
                 f = testCase.makeFilter(mode);
@@ -166,6 +222,24 @@ classdef kfTest < matlab.unittest.TestCase
 
             q = testCase.accel_sigma^2;
             testCase.verifyEqual(f.P, q*[1/3 1/2; 1/2 1], 'AbsTol', 1e-12);
+        end
+
+        function defaultCovarianceWithNoiselessStateIsFloored(testCase)
+            % third state has no process noise and nothing feeding it
+            s = coupledStateBlock();
+            s.state_sigmas = [0.1 0.2 0];
+            f = kf(s, posMeasBlock(1), basicCovBlock());
+
+            testCase.verifyGreaterThan(min(eig(f.P)), 0);
+            testCase.verifyEqual(f.P(3,3), 1e-6*max(diag(f.P)), 'RelTol', 1e-3);
+        end
+
+        function defaultCovarianceWithZeroNoiseErrors(testCase)
+            s = coupledStateBlock();
+            s.state_sigmas = [0 0 0];
+
+            testCase.verifyError(@() kf(s, posMeasBlock(1), basicCovBlock()), ...
+                'kf:singularDefaultCovariance');
         end
 
         function measurementSizeMismatchErrors(testCase)

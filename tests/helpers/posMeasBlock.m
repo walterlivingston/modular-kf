@@ -6,7 +6,7 @@ classdef posMeasBlock < measurementblock
 
     methods
         function [H] = updateObservationMatrix(obj, x_, y_)
-            H = [1 0];
+            H = [1 zeros(1, numel(x_) - 1)];   % measures the first state
         end
         function [R] = calcMeasurementCovarianceMatrix(obj)
             R = diag(obj.meas_sigmas.^2);

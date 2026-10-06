@@ -40,7 +40,7 @@ classdef vlDiscretizeTest < matlab.unittest.TestCase
 
             [~, Qd] = vl_discretize(F, Qc, Bw, 0.05);
 
-            testCase.verifyEqual(Qd, Qd', 'AbsTol', 1e-12);
+            testCase.verifyTrue(issymmetric(Qd));
             testCase.verifyGreaterThan(min(eig((Qd + Qd')/2)), 0);
         end
     end

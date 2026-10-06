@@ -9,7 +9,7 @@ classdef (Abstract) measurementblock < handle
     % Author: Walter Livingston
     
     properties
-        meas_sigmas     (1,:) double = 0;       % Vector of State Sigmas
+        meas_sigmas     (1,:) double = 0;       % Measurement Noise Parameters
         H               (:,:) double = NaN;     % Observation Matrix
         aux             (1,1) struct            % Struct of Aux Data
     end

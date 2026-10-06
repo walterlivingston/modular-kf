@@ -66,6 +66,18 @@ classdef kf < handle
                 [Qc, Bw] = obj.covariance_block.calcProcessCovarianceMatrix(obj, options.dt, obj.state_block);
                 [~, Qd] = vl_discretize(F, Qc, Bw, options.dt);
 
+                % States with no process noise reaching them make Qd
+                % singular; give them a small variance relative to the rest.
+                if rcond(Qd) < 1e-10
+                    floor = 1e-6*max(diag(Qd));
+                    if floor <= 0
+                        error('kf:singularDefaultCovariance', ...
+                            ['The default covariance is zero because Qc is ' ...
+                            'zero. Pass P_i explicitly.']);
+                    end
+                    Qd = Qd + floor*eye(n);
+                end
+
                 obj.P = Qd;
             else
                 P_i = options.P_i;
@@ -94,31 +106,46 @@ classdef kf < handle
             end
         end
         
-        function [obj] = process(obj, dt, customStateBlock, customInnBlock)
+        function [obj] = process(obj, dt, customStateBlock, customInnBlock, options)
         %PROCESS Implements the Time Update of a Kalman Filter
         % This function runs the time update of a Kalman filter. Using the
         % stateblock passed into the constructor, this function creates the
         % state transition and process covariance matrices and propagates
         % the state estimates and state covariance matrix. Custom blocks
         % are used for this call only and do not replace the filter's
-        % blocks; pass [] to skip one.
-            if nargin >= 3 && ~isempty(customStateBlock)
+        % blocks; pass [] to skip one. A control input can be given as
+        % process(dt, u=u); it is passed to the state block's propagate().
+            arguments
+                obj
+                dt                  (1,1) double
+                customStateBlock          = []
+                customInnBlock            = []
+                options.u           (:,1) double = []
+            end
+
+            if ~isempty(customStateBlock)
                 sBlock = customStateBlock;
             else
                 sBlock = obj.state_block;
             end
 
-            if nargin >= 4 && ~isempty(customInnBlock)
+            if ~isempty(customInnBlock)
                 cBlock = customInnBlock;
             else
                 cBlock = obj.covariance_block;
             end
 
-            [obj.x, F] = sBlock.propagate(obj.x, dt, ...
-                (strcmp(obj.mode, 'extended')) || (strcmp(obj.mode, 'error')));
+            relinearize = strcmp(obj.mode, 'extended') || strcmp(obj.mode, 'error');
+            if isempty(options.u)
+                % blocks without control input support never see u
+                [obj.x, F] = sBlock.propagate(obj.x, dt, relinearize);
+            else
+                [obj.x, F] = sBlock.propagate(obj.x, dt, relinearize, options.u);
+            end
             [Qc, Bw] = cBlock.calcProcessCovarianceMatrix(obj, dt, sBlock);
             [Phi, Qd] = vl_discretize(F, Qc, Bw, dt);
             obj.P = Phi*obj.P*Phi' + Qd;
+            obj.P = (obj.P + obj.P')/2;  % remove round-off asymmetry
             
             if strcmp(obj.mode,'error')
                 obj.X = sBlock.applyError(obj.x, obj.X, dt);
@@ -179,6 +206,7 @@ classdef kf < handle
 
                 obj.x = obj.x + L*obj.z;
                 obj.P = (I - L*H)*obj.P*(I - L*H)' + L*R*L';
+                obj.P = (obj.P + obj.P')/2;  % remove round-off asymmetry
 
                 if strcmp(obj.mode, 'error')
                     [obj.x, obj.X] = mBlock.applyError(obj.x, obj.X);
