@@ -14,7 +14,7 @@ classdef (Abstract) covarianceblock < handle
     
     methods
         function [Qc, Bw] = calcProcessCovarianceMatrix(obj, filter, dt, customStateBlock)
-            if exist('customStateBlock', 'var')
+            if nargin >= 4 && ~isempty(customStateBlock)
                 sBlock = customStateBlock;
             else
                 sBlock = filter.state_block;
@@ -23,7 +23,7 @@ classdef (Abstract) covarianceblock < handle
             [Qc, Bw] = sBlock.calcProcessCovarianceMatrix(dt);
         end
         function [R] = calcMeasurementCovarianceMatrix(obj, filter, customMeasBlock)
-            if exist('customMeasBlock', 'var')
+            if nargin >= 3 && ~isempty(customMeasBlock)
                 mBlock = customMeasBlock;
             else
                 mBlock = filter.measurement_block;

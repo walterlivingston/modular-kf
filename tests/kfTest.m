@@ -261,6 +261,44 @@ classdef kfTest < matlab.unittest.TestCase
                 basicCovBlock(), P_i = [1 0.5; 0 1]), 'kf:asymmetricCovariance');
         end
 
+        function negativeInitialCovarianceErrors(testCase)
+            testCase.verifyError(@() kf(cvStateBlock(1), posMeasBlock(1), ...
+                basicCovBlock(), P_i = [1 2; 2 1]), 'kf:negativeCovariance');
+        end
+
+        function semidefiniteInitialCovarianceIsAllowed(testCase)
+            % a perfectly known state may have zero variance
+            f = kf(cvStateBlock(1), posMeasBlock(1), basicCovBlock(), ...
+                P_i = diag([1 0]));
+
+            testCase.verifyEqual(f.P, diag([1 0]));
+        end
+
+        function linearDefaultCovarianceUsesLinearizationPoint(testCase)
+            % F depends on x for the pendulum, so x_i vs x_lin matters
+            s = pendulumStateBlock(2, 0.1, 4.1, 1.6, 1, 1.25);
+            f = kf(s, posMeasBlock(1), basicCovBlock(), ...
+                x_i = [2; 0], mode = 'linear');
+
+            F0 = s.updateStateTransitionMatrix([0; 0]);
+            [~, Qd] = vl_discretize(F0, 0.1^2, [0; 1], 1);
+            testCase.verifyEqual(f.P, Qd, 'AbsTol', 1e-12);
+        end
+
+        function blockPropertiesAreTyped(testCase)
+            f = testCase.makeFilter('linear');
+
+            testCase.verifyError(@() setfield(f, 'state_block', basicCovBlock()), ...
+                'kf:invalidBlock');
+        end
+
+        function missingApplyErrorNamesTheBlock(testCase)
+            testCase.verifyError(@() cvStateBlock(1).applyError([0; 0], [0; 0], 1), ...
+                'stateblock:applyErrorNotImplemented');
+            testCase.verifyError(@() posMeasBlock(1).applyError([0; 0], [0; 0]), ...
+                'measurementblock:applyErrorNotImplemented');
+        end
+
         function omittedInitialCovarianceUsesDefault(testCase)
             f = kf(cvStateBlock(testCase.accel_sigma), posMeasBlock(1), ...
                 basicCovBlock());

@@ -7,9 +7,10 @@ classdef kf < handle
     % Author: Walter Livingston
 
     properties
-        state_block         (1,1)           % State Block Object
-        measurement_block   (1,1)           % Measurement Block Object
-        covariance_block    (1,1)           % Covariance Block Object
+        % (validators instead of class types: abstract classes can't be property types)
+        state_block         {mustBeBlock(state_block, "stateblock")}             % State Block Object
+        measurement_block   {mustBeBlock(measurement_block, "measurementblock")} % Measurement Block Object
+        covariance_block    {mustBeBlock(covariance_block, "covarianceblock")}   % Covariance Block Object
         x                   (:,1) double    % State Vector
         X                   (:,1) double    % Nominal State Vector
         P                   (:,:) double    % State Covariance Matrix
@@ -67,7 +68,12 @@ classdef kf < handle
             end
             
             if isscalar(options.P_i) && isnan(options.P_i)
-                F = obj.state_block.updateStateTransitionMatrix(obj.x);
+                % linearize where the filter will (x_lin in linear mode)
+                if obj.mode == "linear"
+                    F = obj.state_block.updateStateTransitionMatrix(options.x_lin);
+                else
+                    F = obj.state_block.updateStateTransitionMatrix(obj.x);
+                end
                 [Qc, Bw] = obj.covariance_block.calcProcessCovarianceMatrix(obj, options.dt, obj.state_block);
                 [~, Qd] = vl_discretize(F, Qc, Bw, options.dt);
 
@@ -97,17 +103,17 @@ classdef kf < handle
                 if norm(P_i - P_i', 'fro') > 1e-10*max(1, norm(P_i, 'fro'))
                     error('kf:asymmetricCovariance', 'P_i must be symmetric.');
                 end
+                if min(eig((P_i + P_i')/2)) < -1e-12*max(1, norm(P_i, 'fro'))
+                    error('kf:negativeCovariance', ...
+                        'P_i must be positive semidefinite.');
+                end
                 obj.P = P_i;
             end
 
-            switch obj.mode
-                case 'linear'
-                    obj.state_block.F = obj.state_block.updateStateTransitionMatrix(options.x_lin);
-                    obj.measurement_block.H = ...
-                        obj.measurement_block.updateObservationMatrix(options.x_lin, ...
-                            0);
-                case 'extended'
-
+            if obj.mode == "linear"
+                obj.state_block.F = obj.state_block.updateStateTransitionMatrix(options.x_lin);
+                obj.measurement_block.H = ...
+                    obj.measurement_block.updateObservationMatrix(options.x_lin, 0);
             end
         end
         
@@ -254,3 +260,14 @@ classdef kf < handle
     end
 end
 
+
+function mustBeBlock(value, className)
+%MUSTBEBLOCK Validates a kf block property: a scalar of the given block
+% class, or empty (the property's default before construction)
+    if isempty(value)
+        return
+    end
+    if ~isscalar(value) || ~isa(value, className)
+        error('kf:invalidBlock', 'Value must be a scalar %s.', className);
+    end
+end

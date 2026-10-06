@@ -41,8 +41,8 @@ classdef (Abstract) stateblock < handle
             obj.aux = aux;
         end
         function [X] = applyError(obj, x_, X_, dt)
-            error(['apply_error() for the state block has not ' ...
-                'been implemented!']);
+            error('stateblock:applyErrorNotImplemented', ...
+                'applyError() for the state block has not been implemented!');
         end
     end
 end

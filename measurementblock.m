@@ -11,7 +11,7 @@ classdef (Abstract) measurementblock < handle
     properties
         meas_sigmas     (1,:) double = 0;       % Measurement Noise Parameters
         H               (:,:) double = NaN;     % Observation Matrix
-        aux             (1,1) struct            % Struct of Aux Data
+        aux             (1,1) struct = struct('X', 0, 'y', 0, 'x', 0); % Struct of Aux Data
     end
     
     methods
@@ -31,8 +31,8 @@ classdef (Abstract) measurementblock < handle
             obj.aux = aux;       
         end
         function [x, X] = applyError(obj, x_, X_)
-            error(['process_aux_data() for the state block has not ' ...
-                'been implemented!']);        
+            error('measurementblock:applyErrorNotImplemented', ...
+                'applyError() for the measurement block has not been implemented!');
         end
     end
 end
