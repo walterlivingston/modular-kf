@@ -14,6 +14,7 @@ classdef kf < handle
         X                   (:,1) double    % Nominal State Vector
         P                   (:,:) double    % State Covariance Matrix
         z                   (:,1) double    % Innovation Vector
+        rejected            (1,1) logical = false % Last Measurement Rejected
         mode                (1,1) string    % Kalman Filter Mode
     end
     
@@ -79,15 +80,16 @@ classdef kf < handle
         % This function runs the time update of a Kalman filter. Using the
         % stateblock passed into the constructor, this function creates the
         % state transition and process covariance matrices and propagates
-        % the state estimates and state covariance matrix.
-            if exist('customStateBlock', 'var')
+        % the state estimates and state covariance matrix. Custom blocks
+        % are used for this call only and do not replace the filter's
+        % blocks; pass [] to skip one.
+            if nargin >= 3 && ~isempty(customStateBlock)
                 sBlock = customStateBlock;
-                obj.state_block = customStateBlock;
             else
                 sBlock = obj.state_block;
             end
 
-            if exist('customInnBlock', 'var')
+            if nargin >= 4 && ~isempty(customInnBlock)
                 cBlock = customInnBlock;
             else
                 cBlock = obj.covariance_block;
@@ -103,26 +105,32 @@ classdef kf < handle
                 obj.X = sBlock.applyError(obj.x, obj.X, dt);
                 aux = sBlock.aux;
                 aux.X = obj.X;
-                obj.state_block = sBlock.processAuxData(aux);
+                sBlock.processAuxData(aux);
             end
         end
 
-        function [obj] = update(obj, y, customMeasBlock, customInnBlock)
-            if exist('customMeasBlock', 'var')
+        function [obj, rejected] = update(obj, y, customMeasBlock, customInnBlock)
+        %UPDATE Implements the Measurement Update of a Kalman Filter
+        % Custom blocks are used for this call only and do not replace the
+        % filter's blocks; pass [] to skip one. Returns (and stores in
+        % obj.rejected) whether the covariance block rejected the
+        % measurement.
+            if nargin >= 3 && ~isempty(customMeasBlock)
                 mBlock = customMeasBlock;
-                aux = mBlock.aux;
-                aux.X = obj.X;
-                aux.y = y;
-                obj.measurement_block = customMeasBlock.processAuxData(aux);
             else
                 mBlock = obj.measurement_block;
             end
 
-            if exist('customInnBlock', 'var')
+            if nargin >= 4 && ~isempty(customInnBlock)
                 cBlock = customInnBlock;
             else
                 cBlock = obj.covariance_block;
             end
+
+            aux = mBlock.aux;
+            aux.X = obj.X;
+            aux.y = y;
+            mBlock.processAuxData(aux);
 
             [yhat, H] = mBlock.update(obj.x, y, ...
                 (strcmp(obj.mode, 'extended')) || (strcmp(obj.mode, 'error')));
@@ -134,18 +142,21 @@ classdef kf < handle
             oldz = obj.z;
             obj.z = (y - yhat);
             [S,reject] = cBlock.calcInnovationCovarianceMatrix(obj, H, R);
+            obj.rejected = reject;
+            rejected = reject;
             if ~reject
                 L = obj.P*H'/S;
-    
+                I = eye(size(obj.P,1));
+
                 obj.x = obj.x + L*obj.z;
-                obj.P = (eye(obj.state_block.num_states) - L*H)*obj.P*(eye(obj.state_block.num_states) - L*H)' + L*R*L';
-    
+                obj.P = (I - L*H)*obj.P*(I - L*H)' + L*R*L';
+
                 if strcmp(obj.mode, 'error')
                     [obj.x, obj.X] = mBlock.applyError(obj.x, obj.X);
                     aux = mBlock.aux;
                     aux.X = obj.X;
                     aux.y = y;
-                    obj.measurement_block = mBlock.processAuxData(aux);
+                    mBlock.processAuxData(aux);
                 end
             else
                 obj.z = oldz;
