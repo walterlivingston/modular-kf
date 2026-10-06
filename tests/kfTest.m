@@ -190,6 +190,22 @@ classdef kfTest < matlab.unittest.TestCase
             testCase.verifyFalse(f.rejected);
         end
 
+        function rowMeasurementMatchesColumn(testCase)
+            fRow = kf(cvStateBlock(testCase.accel_sigma), fullMeasBlock([0.2 0.1]), ...
+                basicCovBlock(), x_i = [1; 0.5], P_i = diag([4 1]));
+            fCol = kf(cvStateBlock(testCase.accel_sigma), fullMeasBlock([0.2 0.1]), ...
+                basicCovBlock(), x_i = [1; 0.5], P_i = diag([4 1]));
+            fRow.process(testCase.dt);
+            fCol.process(testCase.dt);
+
+            fRow.update([1.3 0.4]);
+            fCol.update([1.3; 0.4]);
+
+            testCase.verifyEqual(fRow.x, fCol.x);
+            testCase.verifyEqual(fRow.P, fCol.P);
+            testCase.verifyEqual(fRow.z, fCol.z);
+        end
+
         function invalidModeErrors(testCase)
             testCase.verifyError(@() kf(cvStateBlock(1), posMeasBlock(1), ...
                 basicCovBlock(), mode = "extnded"), ...

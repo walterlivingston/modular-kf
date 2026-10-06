@@ -69,13 +69,13 @@ classdef kf < handle
                 % States with no process noise reaching them make Qd
                 % singular; give them a small variance relative to the rest.
                 if rcond(Qd) < 1e-10
-                    floor = 1e-6*max(diag(Qd));
-                    if floor <= 0
+                    pFloor = 1e-6*max(diag(Qd));
+                    if pFloor <= 0
                         error('kf:singularDefaultCovariance', ...
                             ['The default covariance is zero because Qc is ' ...
                             'zero. Pass P_i explicitly.']);
                     end
-                    Qd = Qd + floor*eye(n);
+                    Qd = Qd + pFloor*eye(n);
                 end
 
                 obj.P = Qd;
@@ -161,13 +161,20 @@ classdef kf < handle
         % filter's blocks; pass [] to skip one. Returns (and stores in
         % obj.rejected) whether the covariance block rejected the
         % measurement.
-            if nargin >= 3 && ~isempty(customMeasBlock)
+            arguments
+                obj
+                y                   (:,1) double
+                customMeasBlock           = []
+                customInnBlock            = []
+            end
+
+            if ~isempty(customMeasBlock)
                 mBlock = customMeasBlock;
             else
                 mBlock = obj.measurement_block;
             end
 
-            if nargin >= 4 && ~isempty(customInnBlock)
+            if ~isempty(customInnBlock)
                 cBlock = customInnBlock;
             else
                 cBlock = obj.covariance_block;
