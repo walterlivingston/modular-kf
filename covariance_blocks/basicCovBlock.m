@@ -7,14 +7,11 @@ classdef basicCovBlock < covarianceblock
     end
 
     methods
-        function [S, reject] = calcInnovationCovarianceMatrix(obj, filter)
-            H = filter.measurement_block.H;
-            P = filter.P;
-            R = filter.measurement_block.calcMeasurementCovarianceMatrix();
+        function [S, reject] = calcInnovationCovarianceMatrix(obj, filter, H, R)
             z = filter.z;
-            S = H*P*H' + R;
+            S = H*filter.P*H' + R;
             obj.S = S;
-            obj.r = sqrt(z'*(S^(-1))*z);
+            obj.r = sqrt(z'*(S\z));
 
             reject = false;
         end

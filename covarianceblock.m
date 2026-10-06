@@ -9,7 +9,7 @@ classdef (Abstract) covarianceblock < handle
     end
 
     methods (Abstract)
-        [S,reject]  = calcInnovationCovarianceMatrix(obj, filter);
+        [S,reject]  = calcInnovationCovarianceMatrix(obj, filter, H, R);
     end
     
     methods

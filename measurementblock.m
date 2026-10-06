@@ -1,8 +1,8 @@
 classdef (Abstract) measurementblock < handle
     %MEASUREMENTBLOCK A generic Kalman Filter Measurement Block class
     % This class is an abstract implementation of the measurement block of 
-    % a Kalman Filter. This class is used to form the observation,
-    % innovation covariance, and measurement covariance matrices. It also
+    % a Kalman Filter. This class is used to form the observation and
+    % measurement covariance matrices. It also
     % stands to correct an estimate with incoming measurements using the
     % measurement model.
     %
@@ -23,7 +23,6 @@ classdef (Abstract) measurementblock < handle
     methods(Abstract)
         [H]         = updateObservationMatrix(obj, x_, y_);
         [R]         = calcMeasurementCovarianceMatrix(obj);
-        [S]         = calcInnovationCovarianceMatrix(obj, x_, P_);
         [yhat, H]   = update(obj, x_, y_, relinearize);
     end
 

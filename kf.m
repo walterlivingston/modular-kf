@@ -26,6 +26,7 @@ classdef kf < handle
                 options.x_i         (:,1) double = zeros(state_block.num_states,1);
                 options.X_i         (:,1) double = zeros(state_block.num_states,1);
                 options.P_i         (:,:) double = NaN
+                options.x_lin       (:,1) double = zeros(state_block.num_states,1); % Linearization Point (linear mode, must be an equilibrium)
                 options.dt          (1,1) double = 1
                 options.mode        (1,1) string = 'linear'
             end
@@ -64,9 +65,9 @@ classdef kf < handle
 
             switch obj.mode
                 case 'linear'
-                    obj.state_block.F = obj.state_block.updateStateTransitionMatrix(options.x_i);
+                    obj.state_block.F = obj.state_block.updateStateTransitionMatrix(options.x_lin);
                     obj.measurement_block.H = ...
-                        obj.measurement_block.updateObservationMatrix(options.x_i, ...
+                        obj.measurement_block.updateObservationMatrix(options.x_lin, ...
                             0);
                 case 'extended'
 
@@ -132,7 +133,7 @@ classdef kf < handle
             R = cBlock.calcMeasurementCovarianceMatrix(obj, mBlock);
             oldz = obj.z;
             obj.z = (y - yhat);
-            [S,reject] = cBlock.calcInnovationCovarianceMatrix(obj);
+            [S,reject] = cBlock.calcInnovationCovarianceMatrix(obj, H, R);
             if ~reject
                 L = obj.P*H'/S;
     
