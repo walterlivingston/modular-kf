@@ -134,6 +134,56 @@ classdef kfTest < matlab.unittest.TestCase
             testCase.verifyFalse(f.rejected);
         end
 
+        function invalidModeErrors(testCase)
+            testCase.verifyError(@() kf(cvStateBlock(1), posMeasBlock(1), ...
+                basicCovBlock(), mode = "extnded"), ...
+                'MATLAB:validators:mustBeMember');
+        end
+
+        function wrongSizeInitialStateErrors(testCase)
+            testCase.verifyError(@() kf(cvStateBlock(1), posMeasBlock(1), ...
+                basicCovBlock(), x_i = [1; 2; 3]), 'kf:stateSize');
+        end
+
+        function wrongSizeInitialCovarianceErrors(testCase)
+            testCase.verifyError(@() kf(cvStateBlock(1), posMeasBlock(1), ...
+                basicCovBlock(), P_i = eye(3)), 'kf:covarianceSize');
+        end
+
+        function partialNanInitialCovarianceErrors(testCase)
+            testCase.verifyError(@() kf(cvStateBlock(1), posMeasBlock(1), ...
+                basicCovBlock(), P_i = [1 NaN; NaN 1]), 'kf:nanCovariance');
+        end
+
+        function asymmetricInitialCovarianceErrors(testCase)
+            testCase.verifyError(@() kf(cvStateBlock(1), posMeasBlock(1), ...
+                basicCovBlock(), P_i = [1 0.5; 0 1]), 'kf:asymmetricCovariance');
+        end
+
+        function omittedInitialCovarianceUsesDefault(testCase)
+            f = kf(cvStateBlock(testCase.accel_sigma), posMeasBlock(1), ...
+                basicCovBlock());
+
+            q = testCase.accel_sigma^2;
+            testCase.verifyEqual(f.P, q*[1/3 1/2; 1/2 1], 'AbsTol', 1e-12);
+        end
+
+        function measurementSizeMismatchErrors(testCase)
+            % H matches the scalar y, but two sigmas give a 2x2 R
+            f = kf(cvStateBlock(1), posMeasBlock([1 1]), basicCovBlock(), ...
+                P_i = eye(2));
+
+            testCase.verifyError(@() f.update(1.3), 'kf:measurementSize');
+        end
+
+        function observationSizeMismatchErrors(testCase)
+            % R is 2x2 and matches y, but posMeasBlock's H has only 1 row
+            f = kf(cvStateBlock(1), posMeasBlock([1 1]), basicCovBlock(), ...
+                P_i = eye(2));
+
+            testCase.verifyError(@() f.update([1.3; 0.2]), 'kf:observationSize');
+        end
+
         function nanCovarianceErrors(testCase)
             f = testCase.makeFilter('linear');
             f.P(1,2) = NaN;
