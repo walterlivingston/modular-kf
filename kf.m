@@ -17,6 +17,11 @@ classdef kf < handle
         rejected            (1,1) logical = false % Last Measurement Rejected
         mode                (1,1) string    % Kalman Filter Mode
     end
+
+    properties (Access = private)
+        disc_cache = struct('F', [], 'Qc', [], 'Bw', [], 'dt', [], ...
+            'Phi', [], 'Qd', [])            % Last Van Loan Discretization
+    end
     
     methods
         function obj = kf(state_block, measurement_block, covariance_block, options)
@@ -143,7 +148,7 @@ classdef kf < handle
                 [obj.x, F] = sBlock.propagate(obj.x, dt, relinearize, options.u);
             end
             [Qc, Bw] = cBlock.calcProcessCovarianceMatrix(obj, dt, sBlock);
-            [Phi, Qd] = vl_discretize(F, Qc, Bw, dt);
+            [Phi, Qd] = obj.discretize(F, Qc, Bw, dt);
             obj.P = Phi*obj.P*Phi' + Qd;
             obj.P = (obj.P + obj.P')/2;  % remove round-off asymmetry
             
@@ -225,6 +230,26 @@ classdef kf < handle
             else
                 obj.z = oldz;
             end
+        end
+    end
+
+    methods (Access = private)
+        function [Phi, Qd] = discretize(obj, F, Qc, Bw, dt)
+        %DISCRETIZE Van Loan discretization, reused while its inputs repeat
+        % Linear filters (and extended filters with constant Jacobians)
+        % discretize the same F, Qc, Bw and dt every step, so the matrix
+        % exponential is only recomputed when one of them changes.
+            c = obj.disc_cache;
+            if isequal(c.dt, dt) && isequal(c.F, F) && ...
+                    isequal(c.Qc, Qc) && isequal(c.Bw, Bw)
+                Phi = c.Phi;
+                Qd = c.Qd;
+                return
+            end
+
+            [Phi, Qd] = vl_discretize(F, Qc, Bw, dt);
+            obj.disc_cache = struct('F', F, 'Qc', Qc, 'Bw', Bw, 'dt', dt, ...
+                'Phi', Phi, 'Qd', Qd);
         end
     end
 end

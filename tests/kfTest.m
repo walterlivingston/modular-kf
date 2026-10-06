@@ -160,6 +160,35 @@ classdef kfTest < matlab.unittest.TestCase
             testCase.verifyGreaterThan(f2.P(2,2), f1.P(2,2));
         end
 
+        function timeUpdateTracksChangingDt(testCase)
+            % a cached discretization must not be reused for a new dt
+            f = testCase.makeFilter('linear');
+            P = f.P;
+            q = testCase.accel_sigma^2;
+
+            for T = [0.1 0.2 0.2 0.1]
+                f.process(T);
+                Phi = [1 T; 0 1];
+                P = Phi*P*Phi' + q*[T^3/3 T^2/2; T^2/2 T];
+            end
+
+            testCase.verifyEqual(f.P, P, 'AbsTol', 1e-12);
+        end
+
+        function oneShotNoiseBlockAfterRepeatedSteps(testCase)
+            % a one-shot block with different Qc must not hit the cache
+            % filled by the filter's own block on the previous step
+            f1 = testCase.makeFilter('linear');
+            f2 = testCase.makeFilter('linear');
+
+            f1.process(testCase.dt);
+            f1.process(testCase.dt);
+            f2.process(testCase.dt);
+            f2.process(testCase.dt, cvStateBlock(10*testCase.accel_sigma));
+
+            testCase.verifyGreaterThan(f2.P(2,2), f1.P(2,2));
+        end
+
         function emptySkipsCustomBlock(testCase)
             f1 = testCase.makeFilter('linear');
             f2 = testCase.makeFilter('linear');
